@@ -1,7 +1,0 @@
-# CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 
-llama-cpp-python
-pypdf 
-sentence-transformers 
-langchain
-chromadb
-# !pip install --upgrade chromadb==0.3.29
