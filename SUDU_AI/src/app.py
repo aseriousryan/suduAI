@@ -1,13 +1,16 @@
-from information_extractor import SuduBotCreator
+from suduAI import SuduBotCreator
 from config import *
 import streamlit as st
 from streamlit_chat import message
-st.session_state.clicked=True
+
+# Initialize SuduBotCreator with the parsed arguments
+sudu_bot_creator = SuduBotCreator(db_path=DB_PATH, collection_name=COLLECTION_NAME, folder_path=FOLDER_PATH)
+
 @st.cache_resource(show_spinner=True)
 def create_sudu_bot():
-    sudu_bot_creator = SuduBotCreator()
     sudu_bot = sudu_bot_creator.create_sudu_bot()
     return sudu_bot
+
 sudu_bot = create_sudu_bot()
 
 def infer_sudu_bot(prompt):
@@ -31,7 +34,7 @@ def main():
     if "user" not in st.session_state:
         st.session_state["user"] = ["Hey there!"]
                 
-    if st.session_state.clicked :
+    if st.session_state :
         if st.button("Answer"):
 
             answer = infer_sudu_bot({'query': user_input})
