@@ -72,8 +72,7 @@ class SuduBotCreator:
         # get collection
         self.retriever = self.get_collection(collection_name)
         # get chain
-        custom_prompt = self.create_custom_prompt()
-        chain = self.create_chain(custom_prompt)
+        chain = self.create_chain()
 
         model_out = chain(prompt)
 
