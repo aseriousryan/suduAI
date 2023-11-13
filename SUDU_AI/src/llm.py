@@ -8,17 +8,12 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from config import *
 from vectordb import VectorDB
 from pdfloader import PDFLoader
-from ingest import Ingest
-# from ensemble_retriever import retriever_creation
 
 class SuduBotCreator:
 
-    def __init__(self, db_path: str, collection_name: str, folder_path: str):
+    def __init__(self):
         # Initialize PDFLoader, Ingest, and VectorDB
         self.pdf_loader = PDFLoader()
-        self.vector_db = VectorDB(db_path=db_path, collection_name=collection_name)
-        self.ingest = Ingest(db_path=db_path, collection_name=collection_name)
-        self.load_documents = self.ingest.run(folder_path)
 
         # Other initializations...
         self.callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
@@ -33,11 +28,6 @@ class SuduBotCreator:
         self.n_ctx = N_CTX
         self.top_p = TOP_P
         self.verbose = VERBOSE
-
-
-    def load_retriever(self):
-        # Get retriever from VectorDB
-        return self.vector_db.get_retriever()
     
     def create_custom_prompt(self):
         custom_prompt_temp = PromptTemplate(template=self.prompt_temp,
@@ -45,14 +35,6 @@ class SuduBotCreator:
         return custom_prompt_temp
     
     def load_llm(self):
-        # llm = CTransformers(
-        #         model = self.model_ckpt,
-        #         model_type=self.model_type,
-        #         max_new_tokens = self.max_new_tokens,
-        #         temperature = self.temperature,
-        #         gpu_layers= self.gpu_layers
-        #     )
-        # return llm
 
         llm = LlamaCpp(
             model_path=self.model_path,
@@ -68,19 +50,18 @@ class SuduBotCreator:
         return llm
 
 
-    def create_bot(self, custom_prompt, retriever, llm):
+    def create_chain(self):
         retrieval_qa_chain = RetrievalQA.from_chain_type(
-                                llm=llm,
+                                llm=self.llm,
                                 chain_type=self.chain_type,
                                 retriever=self.retriever,
                                 return_source_documents=True,
-                                chain_type_kwargs={"prompt": custom_prompt}
+                                chain_type_kwargs={"prompt": self.custom_prompt }
                             )
         return retrieval_qa_chain
     
     def create_sudu_bot(self):
         self.custom_prompt = self.create_custom_prompt()
-        self.retriever = self.load_retriever()
         self.llm = self.load_llm()
 
     def get_collection(self, collection_name, db_path='default'):
@@ -89,40 +70,42 @@ class SuduBotCreator:
 
     def infer_sudu_bot(self, prompt, collection_name):
         # get collection
+        self.retriever = self.get_collection(collection_name)
         # get chain
-        chain = create_chain()
+        custom_prompt = self.create_custom_prompt()
+        chain = self.create_chain(custom_prompt)
 
         model_out = chain(prompt)
 
         response = {
-            'model_out': model_out,
-            'source_document': 
+            'model_output': model_out,
+            'source_document': model_out['source_documents']
         }
 
         return response
 
+        # answer = model_out['result']
+        # source_documents = model_out['source_documents']
+        # metadata = [doc.metadata for doc in source_documents]
 
-        answer = model_out['result']
-        source_documents = model_out['source_documents']
-        metadata = [doc.metadata for doc in source_documents]
+        # # Create a structured string for the output
+        # output = f"{answer}"
+        # for i, meta in enumerate(metadata):
+        #     output += f"\nSource Document {i+1}:\n"
+        #     output += f"Page: {meta['page']}\n"
+        #     output += f"Source: {meta['source']}\n"
 
-        # Create a structured string for the output
-        output = f"{answer}"
-        for i, meta in enumerate(metadata):
-            output += f"\nSource Document {i+1}:\n"
-            output += f"Page: {meta['page']}\n"
-            output += f"Source: {meta['source']}\n"
-
-        return output
+        # return output
 
 if __name__ == "__main__":
     # Initialize SuduBotCreator with the parsed arguments
-    sudu_bot_creator = SuduBotCreator(db_path=DB_PATH, collection_name=COLLECTION_NAME, folder_path=FOLDER_PATH)
+    sudu_bot_creator = SuduBotCreator()
 
     # Create the bot
     sudu_bot_creator.create_sudu_bot()
 
     # Now you can call the infer_sudu_bot method
-    output = sudu_bot_creator.infer_sudu_bot({'query': 'Who are the investors press person?'})
+    output = sudu_bot_creator.infer_sudu_bot({'query': 'Who are the investors press person?'}, 'collection_name')
     print(output)
+
 
