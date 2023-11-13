@@ -72,7 +72,7 @@ class SuduBotCreator:
         retrieval_qa_chain = RetrievalQA.from_chain_type(
                                 llm=llm,
                                 chain_type=self.chain_type,
-                                retriever= retriever,
+                                retriever=self.retriever,
                                 return_source_documents=True,
                                 chain_type_kwargs={"prompt": custom_prompt}
                             )
@@ -82,11 +82,26 @@ class SuduBotCreator:
         self.custom_prompt = self.create_custom_prompt()
         self.retriever = self.load_retriever()
         self.llm = self.load_llm()
-        self.bot = self.create_bot(self.custom_prompt, self.retriever, self.llm)
+
+    def get_collection(self, collection_name, db_path='default'):
+        self.vector_db = VectorDB(db_path=db_path, collection_name=collection_name)
+        return self.vector_db.get_retriever()
+
+    def infer_sudu_bot(self, prompt, collection_name):
+        # get collection
+        # get chain
+        chain = create_chain()
+
+        model_out = chain(prompt)
+
+        response = {
+            'model_out': model_out,
+            'source_document': 
+        }
+
+        return response
 
 
-    def infer_sudu_bot(self, prompt):
-        model_out = self.bot(prompt)
         answer = model_out['result']
         source_documents = model_out['source_documents']
         metadata = [doc.metadata for doc in source_documents]
