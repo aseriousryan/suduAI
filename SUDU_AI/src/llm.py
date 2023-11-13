@@ -77,7 +77,7 @@ class SuduBotCreator:
         model_out = chain(prompt)
 
         response = {
-            'model_output': model_out,
+            'model_output': model_out['result'],
             'source_document': model_out['source_documents']
         }
 
