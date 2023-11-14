@@ -4,15 +4,16 @@ from fastapi import FastAPI, File, UploadFile
 from ingest import Ingest
 from llm import SuduLLM
 
-ingest_pdf = Ingest("chroma_db", "default_collection")
+
 sudu_LLM = SuduLLM()
 
 app = FastAPI()
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(metadata, file: UploadFile = File(...)):
     content = await file.read()
+    ingest_pdf = Ingest("chroma_db", metadata)
     with open('test.pdf', 'wb') as file:  
         file.write(content)
     response = ingest_pdf.run("test.pdf")
@@ -26,7 +27,7 @@ async def upload(msg, metadata):
     sudu_LLM.create_sudu()
 
     # Infer
-    response = sudu_LLM.infer_sudu({'query': msg}, 'collection_name')
+    response = sudu_LLM.infer_sudu({'query': msg}, metadata)
 
     result = {
             'model_output': response['model_output'],
