@@ -12,8 +12,9 @@ app = FastAPI()
 
 @app.post("/upload")
 async def upload(metadata, file: UploadFile = File(...)):
-    content = await file.read()
     ingest_pdf = Ingest("chroma_db", metadata)
+    
+    content = await file.read()
     with open('test.pdf', 'wb') as file:  
         file.write(content)
     response = ingest_pdf.run("test.pdf")
