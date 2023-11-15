@@ -1,5 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from ingest import Ingest
 from llm import SuduLLM
@@ -8,16 +10,23 @@ from llm import SuduLLM
 sudu_LLM = SuduLLM()
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/upload")
-async def upload(metadata, file: UploadFile = File(...)):
+async def upload(file: UploadFile , metadata):
     ingest_pdf = Ingest("chroma_db", metadata)
     
     content = await file.read()
     with open('test.pdf', 'wb') as file:  
         file.write(content)
-    response = ingest_pdf.run("test.pdf")
+    response = ingest_pdf.run("/home/seriousco/Documents/suduAI")
     return response
     
     
@@ -36,6 +45,9 @@ async def upload(msg, metadata):
         }
 
     return result
+
+
+    #If response output == "" or None, return reponse "Sorry, I am not able to find your informatiopn based on the contexts given"
 
     
 
