@@ -1,22 +1,11 @@
 model_type: llama-cpp
-model_path: /home/seriousco/aserious-sudu/models/yarn-mistral-7b-128k.Q5_K_M.gguf
-context_length: 8192
-max_tokens: 8192
+model_path: models/mistral-7b-instruct-v0.1.Q8_0.gguf
+context_length: 4096
+max_tokens: 4096
 temperature: 0.0
 n_gpu_layers: 50
 stop: ['</s>']
 last_n_tokens: 2048
-prompt_template: "<s>[INST] {prompt} [/INST]"
-prefix: "<s>[INST]"
-suffix: " [/INST]"
-
-instructions: "Use the following format:
-
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [sql_db_query, sql_db_schema, sql_db_list_tables, sql_db_query_checker, name_search]
-Action Input: the input to the action
-Observation: the result of the action
-(this Thought/Action/Action Input/Observation can repeat 10 times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question"
+prompt_template: "<s>[INST] {system_message} {prompt} [/INST]"
+prefix_template: "<s>[INST] {prefix_text}\n\n"
+suffix_template: " {suffix_text}[/INST]"
