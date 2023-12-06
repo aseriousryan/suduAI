@@ -79,6 +79,7 @@ def _get_single_prompt(
     input_variables: Optional[List[str]] = None,
     include_df_in_prompt: Optional[bool] = True,
     number_of_head_rows: int = 5,
+    default_prompt: bool = False
 ) -> Tuple[BasePromptTemplate, List[PythonAstREPLTool]]:
     if suffix is not None:
         suffix_to_use = suffix
@@ -97,11 +98,13 @@ def _get_single_prompt(
 
     if prefix is None:
         prefix = PREFIX
+        default_prompt = True
 
     tools = [PythonAstREPLTool(locals={"df": df})]
     
     prompt = ZeroShotAgent.create_prompt(
-        tools, prefix=prefix, suffix=suffix_to_use, input_variables=input_variables
+        tools, prefix=prefix, suffix=suffix_to_use, input_variables=input_variables,
+        default_prompt=default_prompt
     )
 
     partial_prompt = prompt.partial()
