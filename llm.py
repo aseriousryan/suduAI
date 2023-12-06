@@ -4,8 +4,6 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
 from langchain.schema import StrOutputParser
 
-
-
 class LargeLanguageModel:
     def __init__(
         self, **kwargs
@@ -19,7 +17,8 @@ class LargeLanguageModel:
                 top_p=1,
                 callback_manager=callback_manager1,
                 verbose=True,
-                streaming = True,
+                streaming=True,
+                # stop=kwargs['stop'],
                 n_gpu_layers=kwargs['n_gpu_layers'],
                 n_ctx=kwargs['context_length']
             )
@@ -28,12 +27,12 @@ class LargeLanguageModel:
             self.llm = OpenAI(openai_api_key=kwargs['openai_api_key'])
 
         # simple runnable
-        # self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
-        # self.llm_runnable = self.prompt_template | self.llm | StrOutputParser()
+        self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
+        self.llm_runnable = self.prompt_template | self.llm | StrOutputParser()
 
         # self.instructions = kwargs['format_instructions']
-        # self.prefix = kwargs['prefix']
-        # self.suffix = kwargs['suffix']
+        self.prefix = kwargs['prefix_template'].format(prefix_text=kwargs['prefix'])
+        self.suffix = kwargs['suffix_template'].format(suffix_text=kwargs['suffix'])
 
 
         

@@ -1,3 +1,6 @@
 *__pycache__
 chroma_db/
 tmp/
+models
+results/
+wandb/
