@@ -14,10 +14,15 @@ prompt_template: "<|im_start|>system
 "
 
 prefix_template: "<|im_start|>system
+
 {prefix_text} <|im_end|>
 
 "
 
 suffix_template: "<|im_start|>user
+
 {suffix_text} <|im_end|>
-<|im_start|>assistant"
+
+<|im_start|>assistant
+
+"

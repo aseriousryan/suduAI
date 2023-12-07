@@ -10,19 +10,22 @@ import yaml
 import time
 import argparse
 import traceback
+import wandb
+import datetime
 
 import numpy as np
 import pandas as pd
-import wandb
 
 set_verbose(True)
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
+ap.add_argument('--evaluator', type=str, default='./model_configs/neural-chat.yml')
 ap.add_argument('--model', type=str, default='./model_configs/neural-chat.yml')
 ap.add_argument('--prompt', type=str, default='./prompts/pandas_prompt_01.yml')
 ap.add_argument('--use-custom-prompt', action='store_true', default=False)
 ap.add_argument('--questions_answers', type=str, default='./data/questions_answers.xlsx')
+ap.add_argument('--wandb_project', type=str, default='langchain-tracing')
 args = ap.parse_args()
 
 save_folder = args.save_path.split('/')
@@ -30,7 +33,7 @@ save_folder = '/'.join(save_folder[:-1])
 os.makedirs(save_folder, exist_ok=True)
 
 os.environ['LANGCHAIN_WANDB_TRACING'] = 'true'
-os.environ['WANB_PROJECT'] = 'tmp-llm'
+# os.environ['WANB_PROJECT'] = 'tmp-llm'
 
 with open(args.model, 'r') as f:
     model_config = yaml.safe_load(f)
@@ -42,6 +45,12 @@ with open('./prompts/evaluate_prompt.yml', 'r') as f:
     evaluate_prompt_template = yaml.safe_load(f)
 
 llm = LargeLanguageModel(**model_config, **prompt_config)
+if args.model != args.evaluator:
+    with open(args.evaluator, 'r') as f:
+        evaluator_config = yaml.safe_load(f)
+        evaluator_llm = LargeLanguageModel(**evaluator_config, **prompt_config)
+else:
+    evaluator_llm = llm
 
 df_questions = pd.read_excel(args.questions_answers, sheet_name=None)
 
@@ -73,7 +82,8 @@ for dataset_name, df_question in df_questions.items():
         early_stopping_method='force', 
     )
     results = []
-    with wandb.init(project='langchain-tracing') as run:
+    wandb_run_name = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M")} - {dataset_name}'
+    with wandb.init(project=args.wandb_project, name=wandb_run_name) as run:
         for idx, row in df_question.iterrows():
             question = row['Questions']
             answer = str(row['Answers'])
@@ -95,7 +105,7 @@ for dataset_name, df_question in df_questions.items():
                 evaluation_prompt = PromptTemplate.from_template(
                     evaluation_prompt
                 )
-                runnable = evaluation_prompt | llm.llm | StrOutputParser()
+                runnable = evaluation_prompt | evaluator_llm.llm | StrOutputParser()
                 rating = runnable.invoke({'system_message': evaluate_prompt_template['system'], 'prompt': evaluation_prompt})
             except:
                 end = time.time()

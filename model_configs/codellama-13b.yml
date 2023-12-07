@@ -8,4 +8,4 @@ stop: ['</s>']
 last_n_tokens: 2048
 prompt_template: "[INST] {system_message} {prompt} [/INST]"
 prefix_template: "[INST] {prefix_text}\n\n"
-suffix_template: " {suffix_text} [/INST]"
+suffix_template: " {suffix_text}\n\n[/INST]"
