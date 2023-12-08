@@ -18,6 +18,13 @@ import pandas as pd
 
 set_verbose(True)
 
+log_file_path = './log/logfile.txt' #alternative logging for all outputs 
+if os.path.exists(log_file_path):
+    os.remove(log_file_path)
+sys.stdout = open(log_file_path, 'w')
+sys.stderr = open(log_file_path, 'a')
+
+
 ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
 ap.add_argument('--evaluator', type=str, default='./model_configs/neural-chat.yml')
@@ -128,3 +135,48 @@ for dataset_name, df_question in df_questions.items():
     df_result.to_excel(writer, index=False, sheet_name=dataset_name)
 
 writer.close()
+
+# The accuracy for each dataset and overall accuracy will be printed inside './log/logfile.txt' (bottom)
+
+
+# Load the Excel file
+with pd.ExcelFile(args.save_path) as xls:
+    # Get the names of all sheets in the Excel file
+    sheet_names = xls.sheet_names
+
+# Initialize a dictionary to store accuracy for each dataset
+accuracy_per_dataset = {}
+
+# Initialize counters for overall correct predictions and total predictions
+overall_correct_predictions = 0
+overall_total_predictions = 0
+
+# For each dataset (sheet in the Excel file)
+for dataset_name in sheet_names:
+    # Read the dataset into a DataFrame
+    df = pd.read_excel(args.save_path, sheet_name=dataset_name)
+
+    # Calculate the number of correct predictions (rating == 1) and total number of predictions
+    correct_predictions = (df['rating'] == 1).sum()
+    total_predictions = len(df)
+    
+    # Update the overall counters
+    overall_correct_predictions += correct_predictions
+    overall_total_predictions += total_predictions
+    
+    # Calculate the accuracy for the current dataset
+    accuracy = correct_predictions / total_predictions
+    
+    # Store the accuracy in the dictionary
+    accuracy_per_dataset[dataset_name] = accuracy
+
+# Calculate the overall accuracy
+overall_accuracy = overall_correct_predictions / overall_total_predictions
+
+# Print the accuracy for each dataset
+# Print the accuracy for each dataset
+for dataset_name, accuracy in accuracy_per_dataset.items():
+    print(f'Accuracy for {dataset_name}: {accuracy * 100:.2f}%')
+
+# Print the overall accuracy
+print(f'Overall accuracy: {overall_accuracy * 100:.2f}%')
