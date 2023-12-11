@@ -4,3 +4,4 @@ tmp/
 models
 results/
 wandb/
+logs/

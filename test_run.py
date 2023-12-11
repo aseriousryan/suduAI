@@ -18,13 +18,6 @@ import pandas as pd
 
 set_verbose(True)
 
-log_file_path = './log/logfile.txt' #alternative logging for all outputs 
-if os.path.exists(log_file_path):
-    os.remove(log_file_path)
-sys.stdout = open(log_file_path, 'w')
-sys.stderr = open(log_file_path, 'a')
-
-
 ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
 ap.add_argument('--evaluator', type=str, default='./model_configs/neural-chat.yml')
@@ -32,8 +25,13 @@ ap.add_argument('--model', type=str, default='./model_configs/neural-chat.yml')
 ap.add_argument('--prompt', type=str, default='./prompts/pandas_prompt_01.yml')
 ap.add_argument('--use-custom-prompt', action='store_true', default=False)
 ap.add_argument('--questions_answers', type=str, default='./data/questions_answers.xlsx')
+ap.add_argument('--log-file-path', type=str, default='./logs/logfile.txt')
 ap.add_argument('--wandb_project', type=str, default='langchain-tracing')
 args = ap.parse_args()
+
+os.makedirs('logs', exist_ok=True)
+sys.stdout = open(args.log_file_path, 'w')
+sys.stderr = open(args.log_file_path, 'a')
 
 save_folder = args.save_path.split('/')
 save_folder = '/'.join(save_folder[:-1])
@@ -84,7 +82,7 @@ for dataset_name, df_question in df_questions.items():
         agent_executor_kwargs={'handle_parsing_errors': True},
         include_df_in_prompt=include_df_in_prompt,
         return_intermediate_steps=True,
-        max_iterations=10,
+        max_iterations=5,
         max_execution_time=600,
         early_stopping_method='force', 
     )

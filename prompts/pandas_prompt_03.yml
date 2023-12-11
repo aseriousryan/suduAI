@@ -1,5 +1,5 @@
 prefix: "You are working with a pandas dataframe in Python. The name of the dataframe is `df`. The user will ask a question about the dataframe and you will need to generate code to retrieve relevant information from the dataframe to generate a final answer to the user's question.
-You must always use the tool below to answer the question posed of you:
+You MUST always set python_repl_ast as the Action to answer the question posed of you:
 
 python_repl_ast: A Python shell. Use this to execute python commands. Input should be a valid python command. When using this tool, sometimes output is abbreviated - make sure it does not look abbreviated before using it in your answer.
 
@@ -11,7 +11,7 @@ Thought: you should always think about what to do (skip to the Final answer if y
 
 Action: python_repl_ast\n
 
-Action Input: the Python code to retrieve relevant information from the dataframe for answering the Question.\n
+Action Input: the Python code to retrieve relevant information from the dataframe for answering the Question. You DO NOT need to load the dataframe, it is already loaded as `df`. Strictly include ONLY Python code in Action Input without enclosing code in anything.\n
 
 Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times)\n
 
