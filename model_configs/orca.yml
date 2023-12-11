@@ -1,5 +1,5 @@
-model_type: llama-cpp
-model_path: models/orca-2-13b.Q5_K_M.gguf
+model_type: ollama
+model: orca2:13b-q5_K_S
 context_length: 10000
 max_tokens: 2048
 temperature: 0.0
@@ -11,13 +11,11 @@ prompt_template: "<|im_start|>system
 {prompt}<|im_end|>
 <|im_start|>assistant"
 
-# prefix_template: "<|im_start|>system
-# {prefix_text} <|im_end|>
+prefix_template: "<|im_start|>system\n{prefix_text}<|im_end|>
 
-# "
+"
 
-# suffix_template: "<|im_start|>user
-# {suffix_text} <|im_end|>\n<|im_start|>assistant"
+suffix_template: "<|im_start|>user\n{suffix_text} <|im_end|>\n<|im_start|>assistant"
 
-prefix_template: "{prefix_text}\n\n"
-suffix_template: "{suffix_text}\n\n"
+# prefix_template: "{prefix_text}\n\n"
+# suffix_template: "{suffix_text}\n\n"
