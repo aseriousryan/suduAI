@@ -1,5 +1,5 @@
-model_type: llama-cpp
-model_path: models/mistral-7b-instruct-v0.1.Q8_0.gguf
+model_type: ollama
+model: mistral:7b-instruct-v0.2-q6_K
 context_length: 4096
 max_tokens: 4096
 temperature: 0.0
