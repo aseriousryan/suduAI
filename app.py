@@ -22,7 +22,7 @@ try:
     llm_agent = LargeLanguageModelAgent(os.environ['model'], os.environ['prompt_template'])
     mongo_ops = MongoDBOperations(
         host=os.environ['mongodb_url'],
-        port=os.environ['mongodb_port'], 
+        port=int(os.environ['mongodb_port']), 
         username=os.environ['mongodb_user'], 
         password=os.environ['mongodb_password']
     )
