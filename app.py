@@ -1,27 +1,37 @@
-from langchain.globals import set_verbose
-import pandas as pd
-import datetime
-import pytz
-import fastapi
-import uvicorn
 from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBOperations
+from langchain.globals import set_verbose
+from fastapi import HTTPException, FastAPI
+from dotenv import load_dotenv
+
+import pandas as pd
+
+import os
+import uvicorn
 import yaml
+import pytz
+import datetime
 import traceback
-from fastapi import HTTPException
+
+load_dotenv('./.env')
 
 set_verbose(True)
-app = fastapi.FastAPI()
+app = FastAPI()
 
 try:
-    llm_agent = LargeLanguageModelAgent('./model_configs/neural-chat.yml', './prompts/pandas_prompt_04.yml')
-    mongo_ops = MongoDBOperations('quincy.lim-everest.nord', 27017, '', '27017')
-except Exception as e:
-    print(f"Error initializing LargeLanguageModelAgent or MongoDBOperations: {e}")
+    llm_agent = LargeLanguageModelAgent(os.environ['model'], os.environ['prompt_template'])
+    mongo_ops = MongoDBOperations(
+        host=os.environ['mongodb_url'],
+        port=int(os.environ['mongodb_port']), 
+        username=os.environ['mongodb_user'], 
+        password=os.environ['mongodb_password']
+    )
+except:
+    raise RuntimeError(f'Error initializing: {traceback.format_exc()}')
 
 @app.get('/')
 async def root():
-    with open('./model_configs/neural-chat.yml', 'r') as f:
+    with open(os.environ['model'], 'r') as f:
         model_config = yaml.safe_load(f)
     return {"model_config": model_config}
 
@@ -31,10 +41,8 @@ async def store(company_name, csv_file):
         df = pd.read_csv(f"./data/csv_data/{csv_file}.csv")
         data_dict = df.to_dict("records")
         mongo_ops.insert_many(company_name, csv_file, data_dict)
-    except Exception as e:
-        tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
-        tb_str = "".join(tb_str)
-        raise HTTPException(status_code=500, detail=tb_str)
+    except:
+        raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 @app.post('/chat')
 async def chatmsg(query, database_name):
@@ -53,12 +61,8 @@ async def chatmsg(query, database_name):
 
          # Return a dictionary with the result
         return {'result': result}
-    except Exception as e:
-        tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
-        tb_str = "".join(tb_str)
-        raise HTTPException(status_code=500, detail=tb_str)
+    except:
+        raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 if __name__ == "__main__":
-    uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=True)
-
-
+    uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=False)
