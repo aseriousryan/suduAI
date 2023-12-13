@@ -60,8 +60,10 @@ class LargeLanguageModel:
                 num_ctx=kwargs['context_length'],
             )
         else:
-
-            self.llm = OpenAI(openai_api_key=kwargs['openai_api_key'])
+            import os
+            from dotenv import load_dotenv
+            load_dotenv('.env')
+            self.llm = OpenAI(openai_api_key=os.environ['openai_api_key'])
 
         # simple runnable
         self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
