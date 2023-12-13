@@ -1,6 +1,6 @@
 model_type: llama-cpp
-model_path: models/neural-chat-7b-v3-1-16k-q5_k_m.gguf
-context_length: 16000
+model_path: models/marcoroni-neural-chat-7b-v1.Q5_K_M.gguf
+context_length: 10000
 max_tokens: 4096
 temperature: 0.0
 stop: []
@@ -13,6 +13,8 @@ prompt_template: "### System:
 {prompt}
 
 ### Assistant:"
+
+
 
 prefix_template: "### System:
 {prefix_text}

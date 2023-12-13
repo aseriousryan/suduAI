@@ -1,14 +1,8 @@
-from llm import LargeLanguageModel
+from utils.llm import LargeLanguageModel
 from aserious_agent.pandas_agent import create_pandas_dataframe_agent
 from langchain.globals import set_verbose
 from langchain.prompts import PromptTemplate
 from langchain.schema import StrOutputParser
-
-from langchain.agents import create_sql_agent
-from langchain.agents.agent_toolkits import SQLDatabaseToolkit
-from langchain.agents.agent_types import AgentType
-from langchain.sql_database import SQLDatabase
-
 
 import os
 import sys
@@ -27,8 +21,8 @@ set_verbose(True)
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
-ap.add_argument('--evaluator', type=str, default='./model_configs/neural-chat.yml')
-ap.add_argument('--model', type=str, default='./model_configs/neural-chat.yml')
+ap.add_argument('--evaluator', type=str, default='./model_configs/neural-chat-16k.yml')
+ap.add_argument('--model', type=str, default='./model_configs/neural-chat-16k.yml')
 ap.add_argument('--prompt', type=str, default='./prompts/pandas_prompt_05.yml')
 ap.add_argument('--logging', type=str, default='./log/logfile.txt')
 ap.add_argument('--use-custom-prompt', action='store_true', default=False)

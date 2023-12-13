@@ -45,22 +45,22 @@ async def store(company_name, csv_file):
         raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 @app.post('/chat')
-async def chatmsg(query, database_name):
+async def chatmsg(msg, database_name, collection):
     try:
-        data = mongo_ops.find_all(database_name)
+        data = mongo_ops.find_all(database_name, collection)
         dataframe_agent = llm_agent.create_dataframe_agent(data)
-        result = dataframe_agent({'input': query})
+        result = dataframe_agent({'input': msg})
 
         #evaluation table (hard-coded)
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-            'query': query,
+            'query': msg,
             'output': result.get('output')
         }
         mongo_ops.insert_one(data)
 
          # Return a dictionary with the result
-        return {'result': result}
+        return result.get('output')
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())
 
