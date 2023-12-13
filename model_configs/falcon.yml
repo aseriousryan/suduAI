@@ -1,0 +1,11 @@
+model_type: ollama
+model: falcon:40b-instruct-q4_1
+context_length: 2048
+max_tokens: 2048
+temperature: 0.0
+stop: []
+last_n_tokens: 2048
+prompt_template: "{system_message}\nUser: {prompt}\nAssistant:"
+
+prefix_template: "{prefix_text}\n"
+suffix_template: "User: {suffix_text}\nAssistant:"
