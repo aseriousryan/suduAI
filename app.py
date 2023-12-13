@@ -2,28 +2,36 @@ from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBOperations
 from langchain.globals import set_verbose
 from fastapi import HTTPException, FastAPI
+from dotenv import load_dotenv
 
 import pandas as pd
 
-import fastapi
+import os
 import uvicorn
 import yaml
 import pytz
 import datetime
 import traceback
 
+load_dotenv('./.env')
+
 set_verbose(True)
 app = FastAPI()
 
 try:
-    llm_agent = LargeLanguageModelAgent('./model_configs/neural-chat.yml', './prompts/pandas_prompt_04.yml')
-    mongo_ops = MongoDBOperations('quincy.lim-everest.nord', 27017, '', '27017')
+    llm_agent = LargeLanguageModelAgent(os.environ['model'], os.environ['prompt_template'])
+    mongo_ops = MongoDBOperations(
+        host=os.environ['mongodb_url'],
+        port=os.environ['mongodb_port'], 
+        username=os.environ['mongodb_user'], 
+        password=os.environ['mongodb_password']
+    )
 except:
     raise RuntimeError(f'Error initializing: {traceback.format_exc()}')
 
 @app.get('/')
 async def root():
-    with open('./model_configs/neural-chat.yml', 'r') as f:
+    with open(os.environ['model'], 'r') as f:
         model_config = yaml.safe_load(f)
     return {"model_config": model_config}
 
