@@ -6,11 +6,9 @@ import fastapi
 import uvicorn
 from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBOperations
-from langchain.globals import set_verbose
-import fastapi
-import uvicorn
-import pandas as pd
 import yaml
+import traceback
+from fastapi import HTTPException
 
 set_verbose(True)
 app = fastapi.FastAPI()
@@ -34,19 +32,21 @@ async def store(company_name, csv_file):
         data_dict = df.to_dict("records")
         mongo_ops.insert_many(company_name, csv_file, data_dict)
     except Exception as e:
-        print(f"Error in /store: {e}")
+        tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+        tb_str = "".join(tb_str)
+        raise HTTPException(status_code=500, detail=tb_str)
 
 @app.post('/chat')
-async def chatmsg(msg, database_name, collection):
+async def chatmsg(query, database_name):
     try:
-        data = mongo_ops.find_all(database_name, collection)
+        data = mongo_ops.find_all(database_name)
         dataframe_agent = llm_agent.create_dataframe_agent(data)
-        result = dataframe_agent({'input': msg})
+        result = dataframe_agent({'input': query})
 
         #evaluation table (hard-coded)
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-            'query': msg,
+            'query': query,
             'output': result.get('output')
         }
         mongo_ops.insert_one(data)
@@ -54,11 +54,11 @@ async def chatmsg(msg, database_name, collection):
          # Return a dictionary with the result
         return {'result': result}
     except Exception as e:
-        print(f"Error in /chat: {e}")
+        tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+        tb_str = "".join(tb_str)
+        raise HTTPException(status_code=500, detail=tb_str)
 
 if __name__ == "__main__":
-    try:
-        uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=False)
-    except Exception as e:
-        print(f"Error running the app: {e}")
+    uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=True)
+
 

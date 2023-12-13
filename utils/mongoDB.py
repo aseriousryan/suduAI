@@ -33,18 +33,30 @@ class MongoDBOperations:
             raise ValueError("Database name, collection name, and data dictionary cannot be None")
 
     def insert_one(self, data):
-        evaluator_db = self.client['logs']
-        evaluator_collection = evaluator_db['de-carton']
-        return evaluator_collection.insert_one(data)
-        
-    def find_all(self, db_name, collection_name):
-        # Finds all documents in the specified collection
-        if db_name and collection_name:
-            db = self.create_database(db_name)
-            collection = db[collection_name]
-            return pd.DataFrame(list(collection.find()))
+        if data:
+            evaluator_db = self.client['logs']
+            evaluator_collection = evaluator_db['de-carton']
+            return evaluator_collection.insert_one(data)
         else:
-            raise ValueError("Database name and collection name cannot be None")
+            raise ValueError("Output data cannot be None")
+        
+    def find_all(self, db_name):
+        # Finds all documents in the specified collection
+        # if db_name and collection_name:
+        #     db = self.create_database(db_name)
+        #     collection = db[collection_name]
+        #     return pd.DataFrame(list(collection.find()))
+        # else:
+        #     raise ValueError("Database name and collection name cannot be None")
+        db = self.client[db_name]
+
+        dataframes = []
+        for collection_name in db.list_collection_names():
+            collection = db[collection_name]
+            df = pd.DataFrame(list(collection.find()))
+            dataframes.append(df)
+
+        return dataframes
 
     def delete_many(self, db_name, collection_name, query):
         # Deletes multiple documents from the specified collection
