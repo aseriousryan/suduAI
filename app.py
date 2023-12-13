@@ -1,25 +1,25 @@
-from langchain.globals import set_verbose
-import pandas as pd
-import datetime
-import pytz
-import fastapi
-import uvicorn
 from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBOperations
 from langchain.globals import set_verbose
+from fastapi import HTTPException, FastAPI
+
+import pandas as pd
+
 import fastapi
 import uvicorn
-import pandas as pd
 import yaml
+import pytz
+import datetime
+import traceback
 
 set_verbose(True)
-app = fastapi.FastAPI()
+app = FastAPI()
 
 try:
     llm_agent = LargeLanguageModelAgent('./model_configs/neural-chat.yml', './prompts/pandas_prompt_04.yml')
     mongo_ops = MongoDBOperations('quincy.lim-everest.nord', 27017, '', '27017')
-except Exception as e:
-    print(f"Error initializing LargeLanguageModelAgent or MongoDBOperations: {e}")
+except:
+    raise RuntimeError(f'Error initializing: {traceback.format_exc()}')
 
 @app.get('/')
 async def root():
@@ -33,8 +33,8 @@ async def store(company_name, csv_file):
         df = pd.read_csv(f"./data/csv_data/{csv_file}.csv")
         data_dict = df.to_dict("records")
         mongo_ops.insert_many(company_name, csv_file, data_dict)
-    except Exception as e:
-        print(f"Error in /store: {e}")
+    except:
+        raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 @app.post('/chat')
 async def chatmsg(msg, database_name, collection):
@@ -53,12 +53,8 @@ async def chatmsg(msg, database_name, collection):
 
          # Return a dictionary with the result
         return {'result': result}
-    except Exception as e:
-        print(f"Error in /chat: {e}")
+    except:
+        raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 if __name__ == "__main__":
-    try:
-        uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=False)
-    except Exception as e:
-        print(f"Error running the app: {e}")
-
+    uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=False)
