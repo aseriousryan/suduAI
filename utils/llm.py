@@ -28,7 +28,7 @@ class LargeLanguageModelAgent:
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
-            max_iterations=10,
+            max_iterations=5,
             max_execution_time=600,
             early_stopping_method='force', 
         )
@@ -45,7 +45,7 @@ class LargeLanguageModel:
                 max_tokens=kwargs['max_tokens'],
                 top_p=1,
                 callback_manager=callback_manager,
-                verbose=True,
+                verbose=False,
                 streaming=True,
                 # stop=kwargs['stop'],
                 n_gpu_layers=kwargs['n_gpu_layers'],
