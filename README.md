@@ -1,10 +1,15 @@
 # Docker setup
-Create container network
+Build image
 ```
-$ docker network create sudu
+$ docker build -f Dockerfile -t registry.gitlab.com/dark_knight/aserious-sudu:0.1 .
 ```
 
-Create Ollama container to host models
+Push image
 ```
-$ docker run -d --gpus=all -v <local models directory>:/root/.ollama -p 11434:11434 --network sudu --name ollama ollama/ollama
+$ docker push registry.gitlab.com/dark_knight/aserious-sudu:0.1
+```
+
+Run container
+```
+$ docker run --gpus all -p 8080:8080 -v <local model path>:/app/models aserious-sudu:0.1
 ```
