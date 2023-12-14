@@ -8,14 +8,11 @@ from aserious_agent.pandas_agent import create_pandas_dataframe_agent
 import yaml
 
 class LargeLanguageModelAgent:
-    def __init__(self, model_config_path, prompt_config_path):
+    def __init__(self, model_config_path):
         with open(model_config_path, 'r') as f:
             model_config = yaml.safe_load(f)
 
-        with open(prompt_config_path, 'r') as f:
-            prompt_config = yaml.safe_load(f)
-
-        self.llm = LargeLanguageModel(**model_config, **prompt_config)
+        self.llm = LargeLanguageModel(**model_config)
 
     def create_dataframe_agent(self, df):
         return create_pandas_dataframe_agent(
@@ -69,6 +66,11 @@ class LargeLanguageModel:
         self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
         self.llm_runnable = self.prompt_template | self.llm | StrOutputParser()
 
-        # self.instructions = kwargs['format_instructions']
-        self.prefix = kwargs['prefix_template'].format(prefix_text=kwargs['prefix'])
-        self.suffix = kwargs['suffix_template'].format(suffix_text=kwargs['suffix'])
+        self.prefix_template = kwargs['prefix_template']
+        self.suffix_template = kwargs['suffix_template']
+    
+    def load_prefix_suffix(self, prefix_text, suffix_text):
+        self.prefix = self.prefix_template.format(prefix_text=prefix_text)
+        self.suffix = self.suffix_template.format(suffix_text=suffix_text)
+
+        return self.prefix, self.suffix
