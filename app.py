@@ -19,7 +19,7 @@ import traceback
 
 load_dotenv('./.env')
 
-set_verbose(False)
+set_verbose(True)
 app = FastAPI()
 rp = RedirectPrint()
 

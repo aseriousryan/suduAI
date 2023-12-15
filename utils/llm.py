@@ -42,7 +42,7 @@ class LargeLanguageModel:
                 max_tokens=kwargs['max_tokens'],
                 top_p=1,
                 callback_manager=callback_manager,
-                verbose=False,
+                verbose=True,
                 streaming=True,
                 # stop=kwargs['stop'],
                 n_gpu_layers=kwargs['n_gpu_layers'],
