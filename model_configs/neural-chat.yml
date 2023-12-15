@@ -1,8 +1,10 @@
-model_type: ollama
-model: neural-chat:7b-v3.2-q5_K_M
+model_type: llama-cpp
+model: neural-chat:7b-v3.1-fp16
+model_path: models/neural-chat-7b-v3-1.Q5_K_M.gguf
 context_length: 2048
 max_tokens: 2048
 temperature: 0.0
+n_gpu_layers: 35
 stop: []
 last_n_tokens: 2048
 prompt_template: "### System:

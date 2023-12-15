@@ -5,3 +5,4 @@ models
 results/
 wandb/
 logs/
+.env
