@@ -5,6 +5,7 @@ from utils.common import tokenize
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 import pandas as pd
@@ -21,6 +22,13 @@ load_dotenv('./.env')
 
 set_verbose(True)
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 rp = RedirectPrint()
 
 llm_agent = LargeLanguageModelAgent(os.environ['model'])
