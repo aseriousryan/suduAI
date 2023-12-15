@@ -1,0 +1,18 @@
+model_type: llama-cpp
+model_path: models/leoscorpius-7b.Q5_K_M.gguf
+context_length: 32768
+max_tokens: 4096
+temperature: 0.0
+stop: []
+last_n_tokens: 2048
+n_gpu_layers: 50
+prompt_template: "### Instruction:
+{prompt}
+
+### Response:
+"
+
+prefix_template: "### Instruction: {prefix_text}\n"
+
+suffix_template: "
+### Response: {suffix_text} "
