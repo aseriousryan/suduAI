@@ -23,7 +23,7 @@ def convert_pdf_to_image(document, dpi):
                 )
     return images[0]
 
-def create_borders(img):
+def create_borders(img, filename):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
     edges = cv2.Canny(gray, 50,150,apertureSize = 3)
 
@@ -43,7 +43,7 @@ def create_borders(img):
         # Draw the three longest lines on the original image
         for line in final_lines:
             for x1, y1, x2, y2 in line:
-                cv2.line(image, (x1, y1), (x2, y2), (0, 0, 0), 1)
+                cv2.line(img, (x1, y1), (x2, y2), (0, 0, 0), 1)
     sorted_lines = sorted(final_lines, key=lambda line: line[0][1])
     
     y1 = sorted_lines[0][0][1]
@@ -78,38 +78,23 @@ def create_borders(img):
     line_x = leftmost_header - 15
     cv2.line(img, (line_x, 0), (line_x, img.shape[0]), (0, 0, 0), 1)
 
-
-
-    
-
-
-
-
-
-
     # Find the rightmost month in the DataFrame
     rightmost_month_idx = (filtered_df["left"] + filtered_df["width"]).idxmax()
     rightmost_month = filtered_df.loc[rightmost_month_idx]
-
-    print(rightmost_month)
 
    # rightmost_month_row = df[df["text"] == rightmost_month].iloc[0]
 
     text_below_dec = df[(df["left"] >= rightmost_month["left"]) & (df["left"] <= (rightmost_month["left"] + rightmost_month["width"]))]
 
-    
-
-  
-
     # Drawing horizontal lines above text elements below the rightmost month
     for _, row in text_below_dec.iterrows():
         cv2.line(img, (0, row["top"] - 10), (img.shape[1], row["top"] - 10), (0, 0, 0), 1)  # Horizontal lines above text
 
-    cv2.imwrite("roi.jpg", img)
 
-def extact_table():
+    cv2.imwrite(f"{filename}.jpg", img)
+
+def extract_table(file, filename):
     #read your file
-    file=r'roi.jpg'
     img = cv2.imread(file,0)
     img.shape
 
@@ -286,20 +271,18 @@ def extact_table():
 
     # Reset the index
     dataframe = dataframe.reset_index(drop=True)
-    data = dataframe.style.set_properties(align="left")
+    dataframe.to_csv(f"{filename}.csv")
+    # data = dataframe.style.set_properties(align="left")
     
 
     
-    #Converting it in a excel-file
-    data.to_excel("output.xlsx")
+    # #Converting it in a excel-file
+    # data.to_excel(f"{filename}.xlsx")
+
     
     
 
     return dataframe
 
-if __name__ == '__main__':
-    image = convert_pdf_to_image('C:/Users/Anish/Desktop/SuduAI/suduAI/input_data/AR_2.pdf', 500)
-    create_borders(image)
-    df = extact_table()
 
-# %%
+

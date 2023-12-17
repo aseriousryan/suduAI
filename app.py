@@ -4,9 +4,10 @@ from utils.redirect_print import RedirectPrint
 from utils.common import tokenize
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException, FastAPI
+from fastapi import HTTPException, FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from preprocessors import cv_de_carton
 
 import pandas as pd
 
@@ -62,6 +63,26 @@ async def root():
     model_config['API_version'] = version
 
     return JSONResponse(content=model_config)
+
+@app.post('/upload')
+def upload(file: UploadFile, filename, collection_name):
+    try:
+        contents = file.file.read()
+        with open (file.filename, 'wb') as f:
+            f.write(contents)
+
+        image = cv_de_carton.convert_pdf_to_image(file.filename, 500)
+        cv_de_carton.create_borders(image, filename)
+        df = cv_de_carton.extract_table(f"{filename}.jpg", filename)
+        data_dict = df.to_dict("records")
+        mongo.insert_many(collection_name, f"{filename}.csv", data_dict)
+        os.remove(f"{filename}.jpg")
+        os.remove(f"{filename}.csv")
+
+    except:
+        raise HTTPException(status_code=404, detail=traceback.format_exc())
+
+    
 
 @app.post('/store')
 async def store(company_name, csv_file):
