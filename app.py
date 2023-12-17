@@ -65,19 +65,24 @@ async def root():
     return JSONResponse(content=model_config)
 
 @app.post('/upload')
-def upload(file: UploadFile, filename, collection_name):
+def upload(file: UploadFile, uuid, collection_name):
     try:
         contents = file.file.read()
         with open (file.filename, 'wb') as f:
             f.write(contents)
 
         image = cv_de_carton.convert_pdf_to_image(file.filename, 500)
-        cv_de_carton.create_borders(image, filename)
-        df = cv_de_carton.extract_table(f"{filename}.jpg", filename)
+        cv_de_carton.create_borders(image, uuid)
+        #format type is a string "creditor" or "debtor"
+        df = cv_de_carton.extract_table(f"{uuid}.jpg", uuid)
         data_dict = df.to_dict("records")
-        mongo.insert_many(collection_name, f"{filename}.csv", data_dict)
-        os.remove(f"{filename}.jpg")
-        os.remove(f"{filename}.csv")
+        response = mongo.insert_many(data_dict, uuid, collection_name)
+        os.remove(file.filename)
+        os.remove(f"{uuid}.jpg")
+        os.remove(f"{uuid}.csv")
+
+        print(response)
+  
 
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())
@@ -154,4 +159,4 @@ async def chatmsg(msg: str, database_name: str, collection: str):
         raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 if __name__ == "__main__":
-    uvicorn.run('app:app', host="0.0.0.0", port=8080, reload=False)
+    uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=False)
