@@ -7,7 +7,7 @@ RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 RUN echo Etc/UTC > /etc/timezone
 
 WORKDIR /app
-COPY requirements.txt .env app.py version.md .
+COPY requirements.txt .env app.py version.md runpod_app.py .
 COPY utils utils/
 COPY aserious_agent aserious_agent/
 COPY model_configs model_configs/
@@ -16,4 +16,5 @@ RUN pip install -r requirements.txt
 RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --force-reinstall llama-cpp-python --no-cache-dir
 
 EXPOSE 8080
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python", "-u", "runpod_app.py" ]
