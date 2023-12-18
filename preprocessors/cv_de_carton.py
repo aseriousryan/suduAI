@@ -326,10 +326,6 @@ def extract_table(file, filename):
 
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> further-preprocessing
 if __name__ == '__main__':
     image = convert_pdf_to_image('C:/Users/Anish/Desktop/SuduAI/suduAI/input_data/AP_MONTHLY.pdf', 500)
     create_borders(image, "test")
