@@ -122,6 +122,6 @@ def chatmsg(job):
             collection_name=database_name
         )
 
-        raise {'error': traceback.format_exc()}
+        raise RuntimeError(traceback.format_exc())
     
 runpod.serverless.start({'handler': chatmsg})
