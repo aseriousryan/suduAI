@@ -38,20 +38,25 @@ async def root():
 
 
 @app.post('/upload')
-def upload(file: UploadFile, uuid, collection_name):
+def upload(file: UploadFile, uuid, collection_name, preprocess=False):
     try:
         contents = file.file.read()
         with open (file.filename, 'wb') as f:
             f.write(contents)
 
-        image = cv_de_carton.convert_pdf_to_image(file.filename, 500)
-        cv_de_carton.create_borders(image, uuid)
-        df = cv_de_carton.extract_table(f"{uuid}.jpg", uuid)
+        if preprocess:
+            image = cv_de_carton.convert_pdf_to_image(file.filename, 500)
+            cv_de_carton.create_borders(image, uuid)
+            df = cv_de_carton.extract_table(f"{uuid}.jpg", uuid)
+            os.remove(f"{uuid}.jpg")
+            os.remove(f"{uuid}.csv")
+        else:
+           df = pd.read_csv(file.filename)
+
         data_dict = df.to_dict("records")
         response = mongo.insert_many(data_dict, uuid, collection_name)
         os.remove(file.filename)
-        os.remove(f"{uuid}.jpg")
-        os.remove(f"{uuid}.csv")
+        
 
         print(response)
   

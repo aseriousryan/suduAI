@@ -266,6 +266,7 @@ def extract_table(file, filename):
     # Set the header to the second row
     dataframe.columns = dataframe.iloc[0]
     dataframe.columns = dataframe.columns.str.strip()
+    dataframe = dataframe.rename(columns={col: col.replace(' ', '') for col in dataframe.columns})
     dataframe.drop("Total", axis=1, inplace=True)
     
     dataframe.replace(to_replace=r'/', value='7', regex=True, inplace=True)
@@ -325,7 +326,10 @@ def extract_table(file, filename):
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> further-preprocessing
 if __name__ == '__main__':
     image = convert_pdf_to_image('C:/Users/Anish/Desktop/SuduAI/suduAI/input_data/AP_MONTHLY.pdf', 500)
     create_borders(image, "test")
