@@ -64,35 +64,6 @@ async def root():
 
     return JSONResponse(content=model_config)
 
-@app.post('/upload')
-def upload(file: UploadFile, filename, collection_name):
-    try:
-        contents = file.file.read()
-        with open (file.filename, 'wb') as f:
-            f.write(contents)
-
-        image = cv_de_carton.convert_pdf_to_image(file.filename, 500)
-        cv_de_carton.create_borders(image, filename)
-        df = cv_de_carton.extract_table(f"{filename}.jpg", filename)
-        data_dict = df.to_dict("records")
-        mongo.insert_many(collection_name, f"{filename}.csv", data_dict)
-        os.remove(f"{filename}.jpg")
-        os.remove(f"{filename}.csv")
-
-    except:
-        raise HTTPException(status_code=404, detail=traceback.format_exc())
-
-    
-
-@app.post('/store')
-async def store(company_name, csv_file):
-    try:
-        df = pd.read_csv(f"./data/csv_data/{csv_file}.csv")
-        data_dict = df.to_dict("records")
-        mongo.insert_many(company_name, csv_file, data_dict)
-    except:
-        raise HTTPException(status_code=404, detail=traceback.format_exc())
-
 @app.post('/chat')
 async def chatmsg(msg: str, database_name: str, collection: str):
     # database_name = company name

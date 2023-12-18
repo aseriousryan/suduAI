@@ -7,7 +7,7 @@ import csv
 import pandas as pd
 from PIL import Image
 import re
-pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
+#pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
 
 def convert_pdf_to_image(document, dpi):
     images = []
@@ -87,8 +87,8 @@ def create_borders(img, filename):
     text_below_dec = df[(df["left"] >= rightmost_month["left"]) & (df["left"] <= (rightmost_month["left"] + rightmost_month["width"]))]
 
     # Drawing horizontal lines above text elements below the rightmost month
-    for _, row in text_below_dec.iterrows():
-        cv2.line(img, (0, row["top"] - 10), (img.shape[1], row["top"] - 10), (0, 0, 0), 1)  # Horizontal lines above text
+    for _, row in text_below_dec.iloc[1:].iterrows():
+        cv2.line(img, (0, row["top"] - 20), (img.shape[1], row["top"] - 20), (0, 0, 0), 1)  # Horizontal lines above text
 
 
     cv2.imwrite(f"{filename}.jpg", img)
@@ -258,31 +258,75 @@ def extract_table(file, filename):
     dataframe.replace('\n', ' ', regex=True, inplace=True)
 
     dataframe = dataframe[~dataframe.astype(str).apply(lambda x: x.str.contains(r'\*', case=False)).any(axis=1)]
-
+    
     # Reset the index
     dataframe = dataframe.reset_index(drop=True)    
 
     
     # Set the header to the second row
     dataframe.columns = dataframe.iloc[0]
+    dataframe.columns = dataframe.columns.str.strip()
+    dataframe.drop("Total", axis=1, inplace=True)
+    
+    dataframe.replace(to_replace=r'/', value='7', regex=True, inplace=True)
+
+
 
     # Drop the second row as it's now the header
     dataframe = dataframe.drop(0)
 
     # Reset the index
     dataframe = dataframe.reset_index(drop=True)
-    dataframe.to_csv(f"{filename}.csv")
-    # data = dataframe.style.set_properties(align="left")
-    
 
-    
-    # #Converting it in a excel-file
-    # data.to_excel(f"{filename}.xlsx")
+    if 'Debtor' in dataframe.columns:
+        # Debtor code
+        for i in range(len(dataframe)-1, 0, -1):
+            if dataframe.iloc[i, 1:].isna().all():
+                dataframe.at[i - 1, 'Debtor'] += ' ' + dataframe.at[i, 'Debtor']
+                dataframe = dataframe.drop(index=i)
 
-    
-    
+        df = dataframe.reset_index(drop=True)
+        df = df.set_index('Debtor')
+        df = df.T
+        date = pd.to_datetime(df.index, format='%b-%Y')
+        df['Year'] = date.year
+        df['Month'] = date.month_name()
+        df = df.reset_index(drop=True)
+
+        for col in df.columns:
+            if df[col].dtype == object:  # Check only object (string) columns
+                if df[col].str.contains(',').any():  # Check if column contains commas
+                    df[col] = df[col].replace(',', '', regex=True).apply(pd.to_numeric)
+
+    else:
+        # Creditor code
+        for i in range(len(dataframe)-1, 0, -1):
+            if dataframe.iloc[i, 1:].isna().all():
+                dataframe.at[i - 1, 'Creditor'] += ' ' + dataframe.at[i, 'Creditor']
+                dataframe = dataframe.drop(index=i)
+
+        df = dataframe.reset_index(drop=True)
+        df = df.set_index('Creditor')
+        df = df.T
+        date = pd.to_datetime(df.index, format='%b-%Y')
+        df['Year'] = date.year
+        df['Month'] = date.month_name()
+        df = df.reset_index(drop=True)
+
+        for col in df.columns:
+            if df[col].dtype == object:  # Check only object (string) columns
+                if df[col].str.contains(',').any():  # Check if column contains commas
+                    df[col] = df[col].replace(',', '', regex=True).apply(pd.to_numeric)
+
+
+    df.to_csv(f"{filename}.csv")
 
     return dataframe
 
 
 
+
+if __name__ == '__main__':
+    image = convert_pdf_to_image('C:/Users/Anish/Desktop/SuduAI/suduAI/input_data/AP_MONTHLY.pdf', 500)
+    create_borders(image, "test")
+    extract_table("test.jpg", "test")
