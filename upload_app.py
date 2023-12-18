@@ -54,12 +54,10 @@ def upload(file: UploadFile, uuid, collection_name, preprocess=False):
            df = pd.read_csv(file.filename)
 
         data_dict = df.to_dict("records")
-        response = mongo.insert_many(data_dict, uuid, collection_name)
+        inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
         os.remove(file.filename)
         
-
-        print(response)
-  
+        return JSONResponse(content={"insert_id": inserted_ids})
 
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())
