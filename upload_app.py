@@ -55,6 +55,7 @@ def upload(file: UploadFile, uuid, collection_name, preprocess=False):
 
         data_dict = df.to_dict("records")
         inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
+        inserted_ids = [str(object_id) for object_id in inserted_ids]
         os.remove(file.filename)
         
         return JSONResponse(content={"insert_id": inserted_ids})
