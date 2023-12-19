@@ -4,10 +4,9 @@ from utils.redirect_print import RedirectPrint
 from utils.common import tokenize
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException, FastAPI, UploadFile
+from fastapi import HTTPException, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from preprocessors import cv_de_carton
 
 import pandas as pd
 

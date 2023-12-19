@@ -1,11 +1,13 @@
 model_type: llama-cpp
 model_path: models/mixtral-8x7b-instruct-v0.1.Q4_0.gguf
-context_length: 2048
-max_tokens: 2048
+context_length: 8192
+max_tokens: 8192
 temperature: 0.0
-n_gpu_layers: 5
+n_gpu_layers: 12
 stop: ['</s>']
 last_n_tokens: 2048
 prompt_template: "<s>[INST] {system_message} {prompt} [/INST]"
-prefix_template: "<s>[INST] {prefix_text}\n\n"
-suffix_template: " {suffix_text}[/INST]"
+# prefix_template: "<s>[INST] {prefix_text} [/INST]\n"
+# suffix_template: "[INST] {suffix_text}[/INST]"
+prefix_template: "{prefix_text}\n"
+suffix_template: "{suffix_text}"
