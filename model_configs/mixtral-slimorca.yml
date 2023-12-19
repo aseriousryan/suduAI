@@ -1,0 +1,19 @@
+model_type: llama-cpp
+model_path: models/mixtral-slimorca-8x7b.Q4_K_M.gguf
+context_length: 8292
+max_tokens: 8292
+temperature: 0.0
+n_gpu_layers: 12
+last_n_tokens: 2048
+prompt_template: "<|im_start|>system
+{system_message}<|im_end|>
+<|im_start|>user
+{prompt}<|im_end|>
+<|im_start|>assistant"
+
+# prefix_template: "<|im_start|>user\n{prefix_text}\n"
+
+# suffix_template: "{suffix_text} <|im_end|>\n<|im_start|>assistant"
+
+prefix_template: "{prefix_text}\n"
+suffix_template: "{suffix_text}"
