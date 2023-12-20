@@ -1,5 +1,4 @@
 model_type: llama-cpp
-model: neural-chat:7b-v3.1-fp16
 model_path: models/neural-chat-7b-v3-1.Q5_K_M.gguf
 context_length: 2048
 max_tokens: 2048
