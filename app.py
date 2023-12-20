@@ -124,4 +124,4 @@ async def chatmsg(msg: str, database_name: str, collection: str):
         raise HTTPException(status_code=404, detail=traceback.format_exc())
 
 if __name__ == "__main__":
-    uvicorn.run('app:app', host="0.0.0.0", port=8082, reload=False)
+    uvicorn.run('app:app', host="0.0.0.0", port=8080, reload=False)
