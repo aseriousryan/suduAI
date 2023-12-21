@@ -1,0 +1,25 @@
+model_type: llama-cpp
+model_path: models/neural-chat-7b-v3-1-16k-q5_k_m.gguf
+context_length: 16000
+max_tokens: 2048
+temperature: 0.0
+n_gpu_layers: 35
+stop: []
+last_n_tokens: 2048
+prompt_template: "### System:
+{system_message}
+
+### User:
+{prompt}
+
+### Assistant:"
+
+prefix_template: "### System:
+{prefix_text}
+
+"
+
+suffix_template: "### User:
+{suffix_text}
+
+### Assistant:"

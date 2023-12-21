@@ -15,7 +15,9 @@ Final Answer: the final answer to the original input question\n
 
 "
 
-suffix: "This is the result of `print(df.head())`:  
+suffix: "{table_desc}
+
+This is the result of `print(df.head())`:  
 
 {df_head}
 
