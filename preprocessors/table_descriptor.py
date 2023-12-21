@@ -29,8 +29,8 @@ def get_table_description(df, desc=''):
         unique_values = df[col].unique().tolist()
         token_length = [len(tokenize(os.environ['tokenizer'], value)) for value in unique_values]
         
-        # if sum of token length is more than 500, don't include column into description
-        if sum(token_length) >= 500: continue
+        # if sum of token length is more than 200, don't include column into description
+        if sum(token_length) >= 200: continue
         categorical_desc += f'{col}: {unique_values}\n'
 
     final_desc = f'This is the quantitative information of the table:\n{df_info}\n'
