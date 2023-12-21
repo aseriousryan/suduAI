@@ -2,7 +2,7 @@ from utils.mongoDB import MongoDBController
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from preprocessors import cv_de_carton, troin
+from preprocessors import cv_de_carton, troin, table_descriptor
 from dotenv import load_dotenv
 import json
 from bson import json_util
@@ -41,7 +41,7 @@ async def root():
 
 
 @app.post('/upload')
-def upload(file: UploadFile, uuid, collection_name, preprocess:bool):
+def upload(file: UploadFile, uuid, collection_name, preprocess:bool, desc:str=''):
     try:
         contents = file.file.read()
         with open (file.filename, 'wb') as f:
@@ -52,7 +52,7 @@ def upload(file: UploadFile, uuid, collection_name, preprocess:bool):
                 df = troin.troin_sales(file.filename)
             else:
                 df = pd.read_excel(file.filename)
-
+    
         elif file.filename.endswith('.pdf'):
             image = cv_de_carton.convert_pdf_to_image(file.filename, 500)
             cv_de_carton.create_borders(image, uuid)
@@ -67,8 +67,20 @@ def upload(file: UploadFile, uuid, collection_name, preprocess:bool):
         inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
         inserted_ids = json.loads(json_util.dumps(inserted_ids))
         os.remove(file.filename)
-       
-        return JSONResponse(content={"insert_id": inserted_ids})
+
+        # add table description to database
+        description_df, description_length = table_descriptor.get_table_description(df, desc)
+        mongo.create_database(os.environ['mongodb_table_descriptor'])
+        # the collection name in description database is the uuid
+        mongo.create_collection(uuid)
+        table_desc_id = mongo.insert_one({
+            'collection': collection_name, 
+            'description': description_df,
+            'token_length': description_length
+        })
+        table_desc_id = str(table_desc_id)
+
+        return JSONResponse(content={"insert_id": inserted_ids, "table_desc_id": table_desc_id})
 
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())
@@ -76,4 +88,4 @@ def upload(file: UploadFile, uuid, collection_name, preprocess:bool):
     
 
 if __name__ == "__main__":
-    uvicorn.run('upload_app:app', host="0.0.0.0", port=8082, reload=False)
+    uvicorn.run('upload_app:app', host="0.0.0.0", port=8082, reload=True)
