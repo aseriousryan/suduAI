@@ -7,11 +7,13 @@ RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 RUN echo Etc/UTC > /etc/timezone
 
 WORKDIR /preprocess-api
-COPY requirements_upload.txt upload_app.py .env version.md .
-COPY utils utils/
-COPY preprocessors preprocessors/
+COPY requirements_upload.txt .
 
 RUN pip install -r requirements_upload.txt
+
+COPY upload_app.py .env version.md .
+COPY utils utils/
+COPY preprocessors preprocessors/
 
 EXPOSE 8082
 CMD ["uvicorn", "upload_app:app", "--host", "0.0.0.0", "--port", "8082"]

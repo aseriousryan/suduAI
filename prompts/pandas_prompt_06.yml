@@ -6,7 +6,7 @@ python_repl_ast: A Python shell. Use this to execute python commands. Input shou
 Use the following format:
 
 Question: the input question you must answer\n
-Thought: you should always think about what to do (skip to Final Answer if you already know the final answer and no action needs to be taken)\n
+Thought: you MUST always think about what to do\n
 Action: python_repl_ast\n
 Action Input: the input to the action\n
 Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times)\n
@@ -15,7 +15,9 @@ Final Answer: the final answer to the original input question\n
 
 "
 
-suffix: "This is the result of `print(df.head())`:  
+suffix: "{table_desc}
+
+This is the result of `print(df.head())`:  
 
 {df_head}
 

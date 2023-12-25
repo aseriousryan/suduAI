@@ -1,6 +1,6 @@
 model_type: llama-cpp
 model_path: models/neural-chat-7b-v3-1.Q5_K_M.gguf
-context_length: 2048
+context_length: 8192
 max_tokens: 2048
 temperature: 0.0
 n_gpu_layers: 35

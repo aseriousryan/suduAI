@@ -14,7 +14,7 @@ import uvicorn
 import yaml
 import traceback
 
-load_dotenv('./.env')
+load_dotenv('./.env.development')
 
 app = FastAPI()
 app.add_middleware(
@@ -41,7 +41,13 @@ async def root():
 
 
 @app.post('/upload')
-def upload(file: UploadFile, uuid, collection_name, preprocess:bool, desc:str=''):
+def upload(
+    file: UploadFile,
+    uuid: str,
+    collection_name: str,
+    preprocess: bool = False,
+    desc: str = ''
+):
     try:
         contents = file.file.read()
         with open (file.filename, 'wb') as f:
