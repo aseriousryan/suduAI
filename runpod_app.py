@@ -3,9 +3,6 @@ from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
 from utils.common import tokenize
 from langchain.globals import set_verbose
-from fastapi.responses import JSONResponse
-from fastapi import HTTPException, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 import pandas as pd
@@ -17,18 +14,11 @@ import yaml
 import pytz
 import datetime
 import traceback
+import runpod
 
 load_dotenv('./.env')
 
 set_verbose(True)
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 rp = RedirectPrint()
 
 llm_agent = LargeLanguageModelAgent(os.environ['model'])
@@ -51,8 +41,7 @@ def load_prompt_prefix_suffix(company_name):
 
     return latest_prompt['prefix'], latest_prompt['suffix']
 
-@app.get('/')
-async def root():
+def root(job):
     with open(os.environ['model'], 'r') as f:
         model_config = yaml.safe_load(f)
 
@@ -61,10 +50,22 @@ async def root():
 
     model_config['API_version'] = version
 
-    return JSONResponse(content=model_config)
+    return model_config
 
-@app.post('/chat')
-async def chatmsg(msg: str, database_name: str, collection: str):
+
+def store(company_name, csv_file):
+    try:
+        df = pd.read_csv(f"./data/csv_data/{csv_file}.csv")
+        data_dict = df.to_dict("records")
+        mongo.insert_many(company_name, csv_file, data_dict)
+    except:
+        raise {'error': traceback.format_exc()}
+
+def chatmsg(job):
+    job = job['input']
+    database_name = job['database_name']
+    collection = job['collection']
+    msg = job['msg']
     # database_name = company name
     try:
         prefix, suffix = load_prompt_prefix_suffix(database_name)
@@ -73,10 +74,7 @@ async def chatmsg(msg: str, database_name: str, collection: str):
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
-        # get table description
-        table_desc = mongo.get_table_desc(database_name, collection)
-
-        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc)
+        dataframe_agent = llm_agent.create_dataframe_agent(data)
 
         # capture terminal outputs to log llm output
         rp.start()
@@ -124,7 +122,6 @@ async def chatmsg(msg: str, database_name: str, collection: str):
             collection_name=database_name
         )
 
-        raise HTTPException(status_code=404, detail=traceback.format_exc())
-
-if __name__ == "__main__":
-    uvicorn.run('app:app', host="0.0.0.0", port=8080, reload=False)
+        raise RuntimeError(traceback.format_exc())
+    
+runpod.serverless.start({'handler': chatmsg})

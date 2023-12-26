@@ -1,6 +1,6 @@
 model_type: llama-cpp
 model_path: models/mistral-7b-instruct-v0.1.Q8_0.gguf
-context_length: 4096
+context_length: 8192
 max_tokens: 4096
 temperature: 0.0
 n_gpu_layers: 50

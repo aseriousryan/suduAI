@@ -14,18 +14,15 @@ class LargeLanguageModelAgent:
 
         self.llm = LargeLanguageModel(**model_config)
 
-    def create_dataframe_agent(self, dfs):
-        # Check if dfs is a list of dataframes, if not, convert it to a list
-        if not isinstance(dfs, list):
-            dfs = [dfs]
-
+    def create_dataframe_agent(self, df, desc):
         return create_pandas_dataframe_agent(
             self.llm.llm, 
-            dfs,  # Pass the list of dataframes
+            df,
+            table_desc=desc,
             verbose=True,
             prefix=self.llm.prefix,
-            suffix=self.llm.suffix, 
-            input_variables= ["input", "agent_scratchpad", "num_dfs", "dfs_head"],
+            suffix=self.llm.suffix,
+            input_variables=['input', 'agent_scratchpad', 'df_head', 'table_desc'],
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
