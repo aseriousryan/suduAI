@@ -20,5 +20,8 @@ suffix: "This is the result of `print(df.head())`:
 
 {df_head}
 
+Here is the table descriptions: 
+{table_descriptions}
+
 Question: {input}  
 {agent_scratchpad}"

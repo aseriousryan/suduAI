@@ -14,21 +14,28 @@ class LargeLanguageModelAgent:
 
         self.llm = LargeLanguageModel(**model_config)
 
-    def create_dataframe_agent(self, df):
+    def create_dataframe_agent(self, dfs):
+        # Check if dfs is a list of dataframes, if not, convert it to a list
+        if not isinstance(dfs, list):
+            dfs = [dfs]
+
         return create_pandas_dataframe_agent(
             self.llm.llm, 
-            df,
+            dfs,  # Pass the list of dataframes
             verbose=True,
             prefix=self.llm.prefix,
-            suffix=self.llm.suffix,
-            input_variables=['input', 'agent_scratchpad', 'df_head'],
+            suffix=self.llm.suffix, 
+            input_variables= ["input", "agent_scratchpad", "num_dfs", "dfs_head"],
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
-            max_iterations=5,
+            max_iterations=10,
             max_execution_time=600,
             early_stopping_method='force', 
         )
+
+
+
 
 class LargeLanguageModel:
     def __init__(
@@ -68,6 +75,15 @@ class LargeLanguageModel:
 
         self.prefix_template = kwargs['prefix_template']
         self.suffix_template = kwargs['suffix_template']
+
+
+        #  # simple runnable
+        # self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
+        # self.llm_runnable = self.prompt_template | self.llm | StrOutputParser()
+
+        # # self.instructions = kwargs['format_instructions']
+        # self.prefix = kwargs['prefix_template'].format(prefix_text=kwargs['prefix'])
+        # self.suffix = kwargs['suffix_template'].format(suffix_text=kwargs['suffix'])
     
     def load_prefix_suffix(self, prefix_text, suffix_text):
         self.prefix = self.prefix_template.format(prefix_text=prefix_text)

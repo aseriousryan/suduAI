@@ -43,7 +43,13 @@ class MongoDBController:
         if collection_name: self.create_collection(collection_name)
 
         return pd.DataFrame(list(self.collection.find()))
+    
+    def find_one(self, db_name=None, collection_name=None):
+        if db_name: self.create_database(db_name)
+        if collection_name: self.create_collection(collection_name)
 
+        return pd.DataFrame(list(self.collection.find_one(collection_name)))
+    
     def delete_many(self, query):
         response = self.collection.delete_many(query)
         return response.deleted_count
