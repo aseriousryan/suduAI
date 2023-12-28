@@ -6,6 +6,7 @@ from preprocessors import cv_de_carton, troin, table_descriptor
 from dotenv import load_dotenv
 import json
 from bson import json_util
+from utils.common import convert_to_date
 
 
 import pandas as pd
@@ -68,6 +69,8 @@ def upload(
 
         elif file.filename.endswith('.csv'):
             df = pd.read_csv(file.filename)
+
+        df = convert_to_date(df)
 
         data_dict = df.to_dict("records")
         inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
