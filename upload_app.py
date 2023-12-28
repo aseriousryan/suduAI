@@ -6,6 +6,7 @@ from preprocessors import cv_de_carton, troin, table_descriptor
 from dotenv import load_dotenv
 import json
 from bson import json_util
+from utils.common import convert_to_date
 
 
 import pandas as pd
@@ -68,6 +69,24 @@ def upload(
 
         elif file.filename.endswith('.csv'):
             df = pd.read_csv(file.filename)
+
+        date_pattern = r'(\b\d{4}-\d{2}-\d{2}\b)|(\b\d{1,2}/\d{1,2}/\d{2,4}\b)|(\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s\d{1,2},?\s\d{2,4}\b)|(\b(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s\d{1,2},?\s\d{2,4}\b)|(\b\d{2}-\d{2}-\d{4}\b)' 
+
+        date_columns = []
+        for column in df.columns:
+            if df[column].dtype == 'object' or df[column].dtype == "datetime64[ns]" or df[column].dtype == "str":
+                date_matches = df[column].astype(str).str.match(date_pattern, na=False)
+                if date_matches.any(): 
+                    df[column] = df[column].apply(convert_to_date)
+                    date_columns.append(column)
+        
+        for date_col in date_columns:
+            df[f"Year"] = df[date_col].dt.year
+            df[f"Month"] = df[date_col].dt.month
+            df[f"Day"] = df[date_col].dt.day
+
+        # Remove the original date columns
+        df.drop(columns=date_columns, inplace=True)
 
         data_dict = df.to_dict("records")
         inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
