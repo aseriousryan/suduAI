@@ -16,11 +16,31 @@ def tokenize(tokenizer_file, text):
 
     return tokens
 
-def convert_to_date(date_str):
-    try:
-        date_conversion = pd.to_datetime(date_str,  dayfirst=False)
+def convert_to_date(df, date_pattern=None):
+    def convert_column_to_date(date_series):
+        try:
+            return pd.to_datetime(date_series, dayfirst=True)
+        except ValueError:
+            return date_series
     
-    except ValueError:
-        date_conversion =  date_str  
+    if date_pattern is None:
+        date_pattern = r'(\b\d{4}-\d{2}-\d{2}\b)|(\b\d{1,2}/\d{1,2}/\d{2,4}\b)|(\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s\d{1,2},?\s\d{2,4}\b)|(\b(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s\d{1,2},?\s\d{2,4}\b)|(\b\d{2}-\d{2}-\d{4}\b)'
     
-    return date_conversion
+    date_columns = []
+    for column in df.columns:
+        if df[column].dtype == 'object' or df[column].dtype == "datetime64[ns]" or df[column].dtype == "str":
+            date_matches = df[column].astype(str).str.match(date_pattern, na=False)
+            if date_matches.any(): 
+                df[column] = convert_column_to_date(df[column])
+                date_columns.append(column)
+    
+    if not date_columns:
+        return df
+    
+    for date_col in date_columns:
+        df[f"Year"] = df[date_col].dt.year
+        df[f"Month"] = df[date_col].dt.month
+        df[f"Day"] = df[date_col].dt.day
+    
+    return df.drop(columns=date_columns)
+
