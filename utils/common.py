@@ -38,9 +38,9 @@ def convert_to_date(df, date_pattern=None):
         return df
     
     for date_col in date_columns:
-        df[f"Year"] = df[date_col].dt.year
-        df[f"Month"] = df[date_col].dt.month
-        df[f"Day"] = df[date_col].dt.day
+        df[f"{date_col}_Year"] = df[date_col].dt.year
+        df[f"{date_col}_Month"] = df[date_col].dt.month
+        df[f"{date_col}_Day"] = df[date_col].dt.day
     
     return df.drop(columns=date_columns)
 
