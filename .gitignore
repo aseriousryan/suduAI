@@ -6,4 +6,4 @@ results/
 wandb/
 logs/
 .env
-.devenv
+.env.development
