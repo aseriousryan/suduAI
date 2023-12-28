@@ -14,14 +14,15 @@ class LargeLanguageModelAgent:
 
         self.llm = LargeLanguageModel(**model_config)
 
-    def create_dataframe_agent(self, df):
+    def create_dataframe_agent(self, df, desc):
         return create_pandas_dataframe_agent(
             self.llm.llm, 
             df,
+            table_desc=desc,
             verbose=True,
             prefix=self.llm.prefix,
             suffix=self.llm.suffix,
-            input_variables=['input', 'agent_scratchpad', 'df_head'],
+            input_variables=['input', 'agent_scratchpad', 'df_head', 'table_desc'],
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,

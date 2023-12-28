@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 import pandas as pd
+import os
 
 class MongoDBController:
     def __init__(self, host, port, username, password, db_name=None):
@@ -53,3 +54,16 @@ class MongoDBController:
         collection_list = self.db.list_collection_names()
 
         return collection in collection_list
+    
+    def get_table_desc(self, database_name, collection):
+        # database name is the database name of where the table is stored, not the desc table database
+        # collection is the name of the collection that we want the description
+        df_desc = self.find_all(os.environ['mongodb_table_descriptor'], database_name)
+        df_desc = df_desc.loc[df_desc['collection'] == collection]
+        if len(df_desc) == 0:
+            table_desc = ''
+        else:
+            table_desc = df_desc['description'].iloc[0]
+            table_desc = f'The following is information about the table df:\n{table_desc}\n'
+
+        return table_desc

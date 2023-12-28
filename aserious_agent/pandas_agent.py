@@ -74,6 +74,7 @@ def _get_multi_prompt(
 
 def _get_single_prompt(
     df: Any,
+    table_desc: str = '',
     prefix: Optional[str] = None,
     suffix: Optional[str] = None,
     input_variables: Optional[List[str]] = None,
@@ -110,13 +111,15 @@ def _get_single_prompt(
     partial_prompt = prompt.partial()
     if "df_head" in input_variables:
         partial_prompt = partial_prompt.partial(
-            df_head=str(df.head(number_of_head_rows).to_markdown())
+            df_head=str(df.head(number_of_head_rows).to_markdown()),
+            table_desc=table_desc
         )
     return partial_prompt, tools
 
 
 def _get_prompt_and_tools(
     df: Any,
+    table_desc: str = '',
     prefix: Optional[str] = None,
     suffix: Optional[str] = None,
     input_variables: Optional[List[str]] = None,
@@ -152,6 +155,7 @@ def _get_prompt_and_tools(
             raise ValueError(f"Expected pandas object, got {type(df)}")
         return _get_single_prompt(
             df,
+            table_desc,
             prefix=prefix,
             suffix=suffix,
             input_variables=input_variables,
@@ -274,6 +278,7 @@ def _get_functions_prompt_and_tools(
 def create_pandas_dataframe_agent(
     llm: BaseLanguageModel,
     df: Any,
+    table_desc: str = '',
     agent_type: AgentType = AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     callback_manager: Optional[BaseCallbackManager] = None,
     prefix: Optional[str] = None,
@@ -295,6 +300,7 @@ def create_pandas_dataframe_agent(
     if agent_type == AgentType.ZERO_SHOT_REACT_DESCRIPTION:
         prompt, base_tools = _get_prompt_and_tools(
             df,
+            table_desc=table_desc,
             prefix=prefix,
             suffix=suffix,
             input_variables=input_variables,

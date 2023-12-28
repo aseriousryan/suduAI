@@ -73,7 +73,10 @@ async def chatmsg(msg: str, database_name: str, collection: str):
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
-        dataframe_agent = llm_agent.create_dataframe_agent(data)
+        # get table description
+        table_desc = mongo.get_table_desc(database_name, collection)
+
+        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc)
 
         # capture terminal outputs to log llm output
         rp.start()
