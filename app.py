@@ -1,7 +1,8 @@
 from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
-from utils.common import tokenize
+from utils.common import tokenize, ENV
+from utils.collection_retriever import llm_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
@@ -18,7 +19,7 @@ import pytz
 import datetime
 import traceback
 
-load_dotenv('./.env')
+load_dotenv(f'./.env.{ENV}')
 
 set_verbose(True)
 app = FastAPI()
@@ -64,17 +65,22 @@ async def root():
     return JSONResponse(content=model_config)
 
 @app.post('/chat')
-async def chatmsg(msg: str, database_name: str, collection: str):
+async def chatmsg(msg: str, database_name: str, collection: str = None):
     # database_name = company name
     try:
         prefix, suffix = load_prompt_prefix_suffix(database_name)
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
+
+        # retrieve collection
+        start = time.time()
+        if collection is None:
+            collection, table_desc = llm_retriever(llm_agent.llm, msg, database_name)
+        end = time.time()
+        time_collection_retrieval = end - start
+
         data = mongo.find_all(database_name, collection)
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
-
-        # get table description
-        table_desc = mongo.get_table_desc(database_name, collection)
 
         dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc)
 
@@ -94,7 +100,10 @@ async def chatmsg(msg: str, database_name: str, collection: str):
             'output': result.get('output'),
             'logs': output_log,
             'n_token_output': n_token_output,
-            'time': end - start,
+            'response_time': end - start,
+            'collection_retrieval_time': time_collection_retrieval,
+            'collection': collection,
+            'database_name': database_name,
             'success': True
         }
 

@@ -9,11 +9,12 @@ import argparse
 from dotenv import load_dotenv
 from utils.common import read_yaml
 
-load_dotenv()
-
 ap = argparse.ArgumentParser()
 ap.add_argument('--model_path', type=str, required=True, help='Actual directory to model weights')
+ap.add_argument('--env', type=str, default='development', help='production | development')
 args = ap.parse_args()
+
+load_dotenv(f'./.env.{args.env}')
 
 model_config = read_yaml(os.environ['model'])
 model = os.path.basename(model_config['model_path'])
@@ -28,8 +29,9 @@ if not os.path.exists(tokenizer):
     print('[*] Copying tokenizer to project root...')
     shutil.copy(os.path.join(args.model_path, tokenizer), tokenizer)
 
-build_cmd = f'docker build -f Dockerfile ' \
-    f'--build-arg {model} --build-arg {tokenizer} ' \
+build_cmd = f'docker build -f Dockerfile --no-cache ' \
+    f'--build-arg MODEL={model} --build-arg TOKENIZER={tokenizer} ' \
+    f'--build-arg SUDUAI_ENV={args.env} ' \
     f'-t registry.gitlab.com/dark_knight/aserious-sudu:{version} .'
 print(f'[*] Building Docker image:\n{build_cmd}\n')
 subprocess.run(build_cmd, shell=True, text=True)
