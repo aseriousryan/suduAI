@@ -7,15 +7,6 @@ import pandas as pd
 import os
 import io
 
-load_dotenv('./.env')
-
-mongo = MongoDBController(
-    host=os.environ['mongodb_url'],
-    port=int(os.environ['mongodb_port']), 
-    username=os.environ['mongodb_user'], 
-    password=os.environ['mongodb_password']
-)
-
 def get_table_description(df, desc=''):
     df_head = df.head(5).to_markdown()
     string_buffer = io.StringIO()
@@ -27,7 +18,7 @@ def get_table_description(df, desc=''):
     categorical_desc = ''
     for col in categorical_columns:
         unique_values = df[col].unique().tolist()
-        token_length = [len(tokenize(os.environ['tokenizer'], value)) for value in unique_values]
+        token_length = [len(tokenize(os.environ['tokenizer'], str(value))) for value in unique_values]
         
         # if sum of token length is more than 200, don't include column into description
         if sum(token_length) >= 200: continue
