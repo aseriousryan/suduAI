@@ -5,14 +5,14 @@ max_tokens: 4096
 temperature: 0.0
 stop: []
 last_n_tokens: 2048
-n_gpu_layers: 50
+n_gpu_layers: 35
+n_batch: 512
 prompt_template: "### Instruction:
 {prompt}
 
-### Response:
+### Response:\n
 "
 
-prefix_template: "### Instruction: {prefix_text}\n"
+prefix_template: "### Instruction: {prefix_text}\n\n"
 
-suffix_template: "
-### Response: {suffix_text} "
+suffix_template: "### Response: {suffix_text}\n"

@@ -1,8 +1,9 @@
-from langchain.llms import LlamaCpp, OpenAI, Ollama
+from langchain_community.llms import LlamaCpp,OpenAI, Ollama
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
 from langchain.schema import StrOutputParser
+
 
 from aserious_agent.pandas_agent import create_pandas_dataframe_agent
 import yaml
@@ -26,9 +27,9 @@ class LargeLanguageModelAgent:
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
-            max_iterations=10,
+            max_iterations=11,
             max_execution_time=600,
-            early_stopping_method='force', 
+            early_stopping_method='force'
         )
 
 
@@ -47,6 +48,7 @@ class LargeLanguageModel:
                 top_p=1,
                 callback_manager=callback_manager,
                 verbose=True,
+                n_batch=kwargs['n_batch'],
                 streaming=True,
                 # stop=kwargs['stop'],
                 n_gpu_layers=kwargs['n_gpu_layers'],
