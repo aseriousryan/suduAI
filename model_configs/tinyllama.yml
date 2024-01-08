@@ -1,0 +1,9 @@
+model_type: llama-cpp
+model_path: models/tinyllama-1.1b-chat-v1.0.Q8_0.gguf
+context_length: 4096
+max_tokens: 128
+temperature: 0.0
+n_gpu_layers: 35
+stop: []
+last_n_tokens: 2048
+prompt_template: "<|system|>\n{system_message}</s>\n<|user|>\n{prompt}</s>\n<|assistant|>"
