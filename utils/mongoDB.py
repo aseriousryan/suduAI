@@ -38,18 +38,18 @@ class MongoDBController:
         response = self.collection.insert_one(data)
 
         return response.inserted_id
-        
-    def find_all(self, db_name=None, collection_name=None):
+
+    def find_all(self, db_name=None, collection_name=None, projection=None):
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
 
-        return pd.DataFrame(list(self.collection.find()))
-    
-    def find_one(self, db_name=None, collection_name=None):
+        return pd.DataFrame(list(self.collection.find(projection=projection)))
+
+    def find_one(self, db_name=None, collection_name=None, projection=None):
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
 
-        return pd.DataFrame(list(self.collection.find_one(collection_name)))
+        return pd.DataFrame(list(self.collection.find_one(collection_name, projection=projection)))
     
     def delete_many(self, query):
         response = self.collection.delete_many(query)

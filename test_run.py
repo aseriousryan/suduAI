@@ -26,17 +26,14 @@ langchain.debug = True
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
-ap.add_argument('--evaluator', type=str, default='./model_configs/neural-chat.yml')
-ap.add_argument('--model', type=str, default='./model_configs/neural-chat.yml')
+ap.add_argument('--evaluator', type=str, default='./model_configs/leoscorpius.yml')
+ap.add_argument('--model', type=str, default='./model_configs/leoscorpius.yml')
 ap.add_argument('--prompt', type=str, default='./prompts/pandas_prompt_01.yml')
 ap.add_argument('--use-custom-prompt', action='store_true', default=False)
-ap.add_argument('--questions_answers', type=str, default='./testing/questions_answers.xlsx')
+ap.add_argument('--questions_answers', type=str, default='./testing/QnA.xlsx')
 ap.add_argument('--log-file-path', type=str, default='./logs/debug.log')
-ap.add_argument('--wandb_project', type=str, default='langchain-tracing')
+ap.add_argument('--wandb_project', type=str, default='llm-logging')
 args = ap.parse_args()
-
-# Redirect stderr to the logging module
-sys.stderr = logging.StreamHandler(sys.stdout).stream
 
 if args.log_file_path:
     os.makedirs('logs', exist_ok=True)
@@ -89,7 +86,7 @@ else:
 
 writer = pd.ExcelWriter(args.save_path)
 for dataset_name, df_question in df_questions.items():
-    df = mongo.find_all(db_name='test_data', collection_name=dataset_name)
+    df = mongo.find_all(db_name='test_data', collection_name=dataset_name, projection={'_id': 0})
     table_desc = mongo.get_table_desc('test_data', dataset_name)
     
     dataframe_agent = llm_agent.create_dataframe_agent(df, table_desc)
