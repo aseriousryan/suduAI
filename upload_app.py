@@ -6,7 +6,7 @@ from preprocessors import cv_de_carton, troin, table_descriptor
 from dotenv import load_dotenv
 import json
 from bson import json_util
-from utils.common import convert_to_date
+from utils.common import convert_to_date, ENV
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ import uvicorn
 import yaml
 import traceback
 
-load_dotenv('./.env.development')
+load_dotenv(f'./.env.{ENV}')
 
 app = FastAPI()
 app.add_middleware(

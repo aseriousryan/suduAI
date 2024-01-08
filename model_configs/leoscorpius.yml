@@ -15,4 +15,4 @@ prompt_template: "### Instruction:
 
 prefix_template: "### Instruction: {prefix_text}\n\n"
 
-suffix_template: "### Response: {suffix_text}\n"
+suffix_template: "{suffix_text}\n### Response:"

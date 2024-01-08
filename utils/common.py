@@ -1,8 +1,11 @@
 import yaml
+import os
 
 import sentencepiece as spm
 
 import pandas as pd
+
+ENV = os.environ['SUDUAI_ENV']
 
 def read_yaml(file_path):
     with open(file_path, 'r') as f:
@@ -43,5 +46,4 @@ def convert_to_date(df, date_pattern=None):
         df[f"{date_col}_Day"] = df[date_col].dt.day
     
     return df.drop(columns=date_columns)
-
 

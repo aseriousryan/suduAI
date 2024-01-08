@@ -72,17 +72,9 @@ class LargeLanguageModel:
         self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
         self.llm_runnable = self.prompt_template | self.llm | StrOutputParser()
 
-        self.prefix_template = kwargs['prefix_template']
-        self.suffix_template = kwargs['suffix_template']
-
-
-        #  # simple runnable
-        # self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
-        # self.llm_runnable = self.prompt_template | self.llm | StrOutputParser()
-
-        # # self.instructions = kwargs['format_instructions']
-        # self.prefix = kwargs['prefix_template'].format(prefix_text=kwargs['prefix'])
-        # self.suffix = kwargs['suffix_template'].format(suffix_text=kwargs['suffix'])
+        if kwargs.get('prefix_template'):
+            self.prefix_template = kwargs['prefix_template']
+            self.suffix_template = kwargs['suffix_template']
     
     def load_prefix_suffix(self, prefix_text, suffix_text):
         self.prefix = self.prefix_template.format(prefix_text=prefix_text)
