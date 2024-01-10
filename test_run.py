@@ -21,8 +21,8 @@ import pandas as pd
 
 load_dotenv('./.env.development')
 
-# set_verbose(False)
-langchain.debug = True
+set_verbose(True)
+# langchain.debug = True
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
@@ -106,7 +106,7 @@ for dataset_name, df_question in df_questions.items():
 
                 llm_output = str(result['output'])
 
-                intermediate_steps = result['intermediate_steps']
+                intermediate_steps = result['intermediate_steps'].split('Prompt after formatting:')[-1]
 
                 # evaluation
                 evaluation_prompt = evaluate_prompt_template['user'].format(
