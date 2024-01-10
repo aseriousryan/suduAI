@@ -67,6 +67,10 @@ async def root():
 @app.post('/chat')
 async def chatmsg(msg: str, database_name: str, collection: str = None):
     # database_name = company name
+    api_output = {
+        'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
+        'query': msg
+    }
     try:
         prefix, suffix = load_prompt_prefix_suffix(database_name)
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
@@ -93,72 +97,46 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         rp.stop()
 
         n_token_output = len(tokenize(os.environ['tokenizer'], output_log))
+        llm_output = result.get('output')
 
-        success = True
-        # Check for specific error message in the output
-        if "Agent stopped due to iteration limit or time limit" in result.get('output'):
-            success = False
-            data =  {
-                'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-                'query': msg,
-                'output': result.get('output'),
-                'logs': output_log,
-                'n_token_output': n_token_output,
-                'response_time': end - start,
-                'collection_retrieval_time': time_collection_retrieval,
-                'collection': collection,
-                'database_name': database_name,
-                'success': success
-            }
-            id = mongo.insert_one(
-                data=data,
-                db_name=os.environ['mongodb_log_db'],
-                collection_name=database_name
-            )
-
-            error_detail = str({'error':'Agent stopped due to iteration limit or time limit.', 'mongo_id': str(id)})
-            raise HTTPException(status_code=405, detail=error_detail)
-        
-        data =  {
-            'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-            'query': msg,
-            'output': result.get('output'),
+        api_output.update({
+            'output': llm_output,
             'logs': output_log,
             'n_token_output': n_token_output,
             'response_time': end - start,
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
-            'database_name': database_name,
-            'success': success
-        }
+            'database_name': database_name
+        })
+
+        # Check for agent limit error message in the output
+        if 'Agent stopped due to iteration limit or time limit' in llm_output:
+            raise RuntimeError('Agent stopped due to iteration limit or time limit.')
+        
+        api_output['success'] = True
 
         # log 
         id = mongo.insert_one(
-            data=data,
+            data=api_output,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
 
          # Return a dictionary with the result
-        return {'result': result.get('output'), 'mongo_id': str(id)}
+        return {'result': llm_output, 'mongo_id': str(id)}
     except:
-        data =  {
-            'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-            'query': msg,
-            'error': traceback.format_exc(),
-            'success': False
-        }
+        api_output['success'] = False
 
         if 'output_log' in globals():
-            data['logs'] = output_log
+            api_output['logs'] = output_log
 
         id = mongo.insert_one(
-            data=data,
+            data=api_output,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
         
-        error_detail = str({'error':traceback.format_exc(), 'mongo_id': str(id)})
+        error_detail = {'error': traceback.format_exc(), 'mongo_id': str(id)}
         raise HTTPException(status_code=404, detail=error_detail)
 
 if __name__ == "__main__":
