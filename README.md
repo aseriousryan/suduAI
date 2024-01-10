@@ -1,4 +1,4 @@
-# Docker setup
+# Docker setup / Release flow
 Build images
 ```
 $ python scripts/build_docker.py --model_path <model path> --env <production | development>
@@ -11,5 +11,5 @@ $ docker run --gpus all -p 8080:8080 asai-sudu:0.1
 
 To run upload endpoint image
 ```
-docker run -d -p 8082:8082 --name upload_sudu registry.gitlab.com/dark_knight/aserious-sudu:upload-0.1
+$ docker run -d -p 8082:8082 --name upload_sudu registry.gitlab.com/dark_knight/aserious-sudu:upload-0.1
 ```
