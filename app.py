@@ -88,7 +88,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         rp.start()
         start = time.time()
         result = dataframe_agent({'input': msg})
-        output_log = rp.get_output()
+        output_log = rp.get_output().split('Prompt after formatting:')[-1]
         end = time.time()
         rp.stop()
 

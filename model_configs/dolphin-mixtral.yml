@@ -1,0 +1,11 @@
+model_type: llama-cpp
+model_path: models/dolphin-2.6-mixtral-8x7b.Q5_K_M.gguf
+context_length: 32768
+max_tokens: 512
+temperature: 0.0
+n_gpu_layers: 10
+last_n_tokens: 2048
+prompt_template: "<|im_start|>system\n{system_message}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant"
+
+prefix_template: "<|im_start|>system\nYou are a data scientist with great analysis and Python coding skills.<|im_end|>\n<|im_start|>user\n{prefix_text}\n"
+suffix_template: "{suffix_text}<|im_end|>\n<|im_start|>assistant"

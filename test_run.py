@@ -35,6 +35,8 @@ ap.add_argument('--log-file-path', type=str, default='./logs/debug.log')
 ap.add_argument('--wandb_project', type=str, default='llm-logging')
 args = ap.parse_args()
 
+sys.stderr = logging.StreamHandler(sys.stdout).stream
+
 if args.log_file_path:
     os.makedirs('logs', exist_ok=True)
     sys.stdout = open(args.log_file_path, 'w')

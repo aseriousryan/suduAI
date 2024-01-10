@@ -32,8 +32,15 @@ if not os.path.exists(tokenizer):
 build_cmd = f'docker build -f Dockerfile --no-cache ' \
     f'--build-arg MODEL={model} --build-arg TOKENIZER={tokenizer} ' \
     f'--build-arg SUDUAI_ENV={args.env} ' \
-    f'-t registry.gitlab.com/dark_knight/aserious-sudu:{version} .'
-print(f'[*] Building Docker image:\n{build_cmd}\n')
+    f'-t asai-sudu:{version} .'
+print(f'[*] Building chat app Docker image:\n{build_cmd}\n')
+subprocess.run(build_cmd, shell=True, text=True)
+
+build_cmd = f'docker build -f Dockerfile_upload --no-cache ' \
+    f'--build-arg TOKENIZER={tokenizer} ' \
+    f'--build-arg SUDUAI_ENV={args.env} ' \
+    f'-t asai-sudu:upload-{version} .'
+print(f'[*] Building upload app Docker image:\n{build_cmd}\n')
 subprocess.run(build_cmd, shell=True, text=True)
 
 # clean up
