@@ -141,9 +141,6 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
          # Return a dictionary with the result
         return {'result': result.get('output'), 'mongo_id': str(id)}
-    except HTTPException as e:
-        # If the exception is an HTTPException, just raise it
-        raise e
     except:
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
