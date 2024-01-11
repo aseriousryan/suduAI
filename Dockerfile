@@ -11,20 +11,22 @@ RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 RUN echo Etc/UTC > /etc/timezone
 
 WORKDIR /app
-COPY requirements.txt .env.$SUDUAI_ENV app.py version.md  .
-COPY utils utils/
-COPY aserious_agent aserious_agent/
-COPY model_configs model_configs/
-RUN mkdir prompts/
-COPY prompts/collection_retriever_prompt.yml prompts/collection_retriever_prompt.yml
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --force-reinstall llama-cpp-python --no-cache-dir
 
 # model weights
 RUN mkdir models/
 COPY $MODEL models/$MODEL
 COPY $TOKENIZER models/$TOKENIZER
 
-RUN pip install -r requirements.txt
-RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --force-reinstall llama-cpp-python --no-cache-dir
+COPY .env.$SUDUAI_ENV app.py version.md .
+COPY utils utils/
+COPY aserious_agent aserious_agent/
+COPY model_configs model_configs/
+RUN mkdir prompts/
+COPY prompts/collection_retriever_prompt.yml prompts/collection_retriever_prompt.yml
 
 ENV SUDUAI_ENV=$SUDUAI_ENV
 EXPOSE 8080

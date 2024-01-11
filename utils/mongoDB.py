@@ -44,7 +44,6 @@ class MongoDBController:
         if collection_name: self.create_collection(collection_name)
 
         df = pd.DataFrame(list(self.collection.find(projection=projection)))
-        df = df.drop('_id', axis=1)
 
         return df
 
