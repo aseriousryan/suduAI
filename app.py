@@ -117,18 +117,16 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         )
 
         if not success:
-            error_detail = {'error':error_message, 'mongo_id': str(id)}
-            raise HTTPException(status_code=405, detail=error_detail)
+            error_detail = {'error': error_message, 'mongo_id': str(id)}
+            return HTTPException(status_code=405, detail=error_detail)
 
         return {'result': result.get('output'), 'mongo_id': str(id)}
     
-    except HTTPException as e:
-        raise e
-    except Exception as e:
+    except Exception:
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
-            'error': str(e),
+            'error': traceback.format_exc(),
             'success': False
         }
 
@@ -137,11 +135,11 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         id = mongo.insert_one(
             data=data,
-            db_name=os.environ['mongodb_log_db'],
-            collection_name=database_name
+            db_name = os.environ['mongodb_log_db'],
+            collection_name = database_name
         )
         
-        error_detail = {'error': str(e), 'mongo_id': str(id)}
+        error_detail = {'error': traceback.format_exc(), 'mongo_id': str(id)}
         raise HTTPException(status_code=404, detail=error_detail)
 
 if __name__ == "__main__":
