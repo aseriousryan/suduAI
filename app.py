@@ -1,7 +1,7 @@
 from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
-from utils.common import tokenize, ENV
+from utils.common import tokenize, ENV, read_yaml
 from utils.collection_retriever import llm_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
@@ -30,7 +30,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-rp = RedirectPrint()
+rp = RedirectPrint() 
 
 llm_agent = LargeLanguageModelAgent(os.environ['model'])
 mongo = MongoDBController(
@@ -40,27 +40,23 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
-def load_prompt_prefix_suffix(company_name):
-    db_name = os.environ['mongodb_prompt_db']
-    if not mongo.is_collection_exist(company_name, db_name):
-        # load default prompt if company name not in prompt database
-        df_prompt = mongo.find_all(db_name, 'default')
-    else:
-        df_prompt = mongo.find_all(db_name, company_name)
+# Load YAML files using paths from environment variables
+prompt = os.environ.get('prompt')
+prompt_template = read_yaml(prompt)
 
-    latest_prompt = df_prompt[df_prompt['date'] == df_prompt['date'].max()].iloc[0]
-
-    return latest_prompt['prefix'], latest_prompt['suffix']
+# Accessing prefix and suffix
+prefix = prompt_template['prefix']
+suffix = prompt_template['suffix']
 
 @app.get('/')
 async def root():
-    with open(os.environ['model'], 'r') as f:
+    with open(os.environ['model'], 'r') as f: 
         model_config = yaml.safe_load(f)
 
     with open('./version.md', 'r') as f:
         version = f.read()
 
-    model_config['API_version'] = version
+    model_config['API_version'] = version 
 
     return JSONResponse(content=model_config)
 
@@ -68,7 +64,6 @@ async def root():
 async def chatmsg(msg: str, database_name: str, collection: str = None):
     # database_name = company name
     try:
-        prefix, suffix = load_prompt_prefix_suffix(database_name)
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
 
         # retrieve collection
