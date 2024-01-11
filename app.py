@@ -67,10 +67,6 @@ async def root():
 @app.post('/chat')
 async def chatmsg(msg: str, database_name: str, collection: str = None):
     # database_name = company name
-    api_output = {
-        'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-        'query': msg
-    }
     try:
         prefix, suffix = load_prompt_prefix_suffix(database_name)
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
@@ -82,7 +78,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         end = time.time()
         time_collection_retrieval = end - start
 
-        data = mongo.find_all(database_name, collection, projection={'_id': 0})
+        data = mongo.find_all(database_name, collection, exclusion={'_id': 0})
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
@@ -97,7 +93,6 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         rp.stop()
 
         n_token_output = len(tokenize(os.environ['tokenizer'], output_log))
-        llm_output = result.get('output')
 
         error_message = "Agent stopped due to iteration limit or time limit"
 
@@ -111,17 +106,12 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'response_time': end - start,
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
-            'database_name': database_name
+            'database_name': database_name,
+            'success': success
         }
 
-        # Check for agent limit error message in the output
-        if 'Agent stopped due to iteration limit or time limit' in llm_output:
-            raise RuntimeError('Agent stopped due to iteration limit or time limit.')
-        
-        api_output['success'] = True
-
         id = mongo.insert_one(
-            data=api_output,
+            data=data,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
@@ -141,7 +131,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         }
 
         if 'output_log' in globals():
-            api_output['logs'] = output_log
+            data['logs'] = output_log
 
         id = mongo.insert_one(
             data=data,
