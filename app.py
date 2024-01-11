@@ -78,7 +78,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         end = time.time()
         time_collection_retrieval = end - start
 
-        data = mongo.find_all(database_name, collection, projection={'_id': 0})
+        data = mongo.find_all(database_name, collection, exclusion={'_id': 0})
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
@@ -94,6 +94,9 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         n_token_output = len(tokenize(os.environ['tokenizer'], output_log))
 
+        error_message = "Agent stopped due to iteration limit or time limit"
+
+        success = error_message not in result.get('output')
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
@@ -104,19 +107,22 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
             'database_name': database_name,
-            'success': True
+            'success': success
         }
 
-        # log 
-        mongo.insert_one(
+        id = mongo.insert_one(
             data=data,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
 
-         # Return a dictionary with the result
-        return {'result': result.get('output')}
-    except:
+        if not success:
+            error_detail = {'error': error_message, 'mongo_id': str(id)}
+            return HTTPException(status_code=405, detail=error_detail)
+
+        return {'result': result.get('output'), 'mongo_id': str(id)}
+    
+    except Exception:
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
@@ -127,13 +133,14 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         if 'output_log' in globals():
             data['logs'] = output_log
 
-        mongo.insert_one(
+        id = mongo.insert_one(
             data=data,
-            db_name=os.environ['mongodb_log_db'],
-            collection_name=database_name
+            db_name = os.environ['mongodb_log_db'],
+            collection_name = database_name
         )
-
-        raise HTTPException(status_code=404, detail=traceback.format_exc())
+        
+        error_detail = {'error': traceback.format_exc(), 'mongo_id': str(id)}
+        raise HTTPException(status_code=404, detail=error_detail)
 
 if __name__ == "__main__":
     uvicorn.run('app:app', host="0.0.0.0", port=8080, reload=False)
