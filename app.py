@@ -1,7 +1,7 @@
 from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
-from utils.common import tokenize, ENV
+from utils.common import tokenize, ENV, read_yaml
 from utils.collection_retriever import llm_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
@@ -30,7 +30,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-rp = RedirectPrint()
+rp = RedirectPrint() 
 
 llm_agent = LargeLanguageModelAgent(os.environ['model'])
 mongo = MongoDBController(
@@ -40,27 +40,23 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
-def load_prompt_prefix_suffix(company_name):
-    db_name = os.environ['mongodb_prompt_db']
-    if not mongo.is_collection_exist(company_name, db_name):
-        # load default prompt if company name not in prompt database
-        df_prompt = mongo.find_all(db_name, 'default')
-    else:
-        df_prompt = mongo.find_all(db_name, company_name)
+# Load YAML files using paths from environment variables
+prompt = os.environ.get('prompt')
+prompt_template = read_yaml(prompt)
 
-    latest_prompt = df_prompt[df_prompt['date'] == df_prompt['date'].max()].iloc[0]
-
-    return latest_prompt['prefix'], latest_prompt['suffix']
+# Accessing prefix and suffix
+prefix = prompt_template['prefix']
+suffix = prompt_template['suffix']
 
 @app.get('/')
 async def root():
-    with open(os.environ['model'], 'r') as f:
+    with open(os.environ['model'], 'r') as f: 
         model_config = yaml.safe_load(f)
 
     with open('./version.md', 'r') as f:
         version = f.read()
 
-    model_config['API_version'] = version
+    model_config['API_version'] = version 
 
     return JSONResponse(content=model_config)
 
@@ -68,7 +64,6 @@ async def root():
 async def chatmsg(msg: str, database_name: str, collection: str = None):
     # database_name = company name
     try:
-        prefix, suffix = load_prompt_prefix_suffix(database_name)
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
 
         # retrieve collection
@@ -94,6 +89,31 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         n_token_output = len(tokenize(os.environ['tokenizer'], output_log))
 
+        success = True
+        # Check for specific error message in the output
+        if "Agent stopped due to iteration limit or time limit" in result.get('output'):
+            success = False
+            data =  {
+                'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
+                'query': msg,
+                'output': result.get('output'),
+                'logs': output_log,
+                'n_token_output': n_token_output,
+                'response_time': end - start,
+                'collection_retrieval_time': time_collection_retrieval,
+                'collection': collection,
+                'database_name': database_name,
+                'success': success
+            }
+            id = mongo.insert_one(
+                data=data,
+                db_name=os.environ['mongodb_log_db'],
+                collection_name=database_name
+            )
+
+            error_detail = str({'error':'Agent stopped due to iteration limit or time limit.', 'mongo_id': str(id)})
+            raise HTTPException(status_code=405, detail=error_detail)
+        
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
@@ -104,18 +124,21 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
             'database_name': database_name,
-            'success': True
+            'success': success
         }
 
         # log 
-        mongo.insert_one(
+        id = mongo.insert_one(
             data=data,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
 
          # Return a dictionary with the result
-        return {'result': result.get('output')}
+        return {'result': result.get('output'), 'mongo_id': str(id)}
+    except HTTPException as e:
+        # If the exception is an HTTPException, just raise it
+        raise e
     except:
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
@@ -127,13 +150,14 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         if 'output_log' in globals():
             data['logs'] = output_log
 
-        mongo.insert_one(
+        id = mongo.insert_one(
             data=data,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
-
-        raise HTTPException(status_code=404, detail=traceback.format_exc())
+        
+        error_detail = str({'error':traceback.format_exc(), 'mongo_id': str(id)})
+        raise HTTPException(status_code=404, detail=error_detail)
 
 if __name__ == "__main__":
     uvicorn.run('app:app', host="0.0.0.0", port=8080, reload=False)
