@@ -1,15 +1,15 @@
-# Docker setup
-Build image
+# Docker setup / Release flow
+Build images
 ```
-$ docker build -f Dockerfile -t registry.gitlab.com/dark_knight/aserious-sudu:0.1 .
-```
-
-Push image
-```
-$ docker push registry.gitlab.com/dark_knight/aserious-sudu:0.1
+$ python scripts/build_docker.py --model_path <model path> --env <production | development>
 ```
 
-Run container
+To run chat endpoint image
 ```
-$ docker run --gpus all -p 8080:8080 -v <local model path>:/app/models aserious-sudu:0.1
+$ docker run --gpus all -p 8080:8080 asai-sudu:0.1
+```
+
+To run upload endpoint image
+```
+$ docker run -d -p 8082:8082 --name upload_sudu registry.gitlab.com/dark_knight/aserious-sudu:upload-0.1
 ```

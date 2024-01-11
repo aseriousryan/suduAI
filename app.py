@@ -73,7 +73,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         end = time.time()
         time_collection_retrieval = end - start
 
-        data = mongo.find_all(database_name, collection)
+        data = mongo.find_all(database_name, collection, projection={'_id': 0})
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
