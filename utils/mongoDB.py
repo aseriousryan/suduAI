@@ -39,18 +39,18 @@ class MongoDBController:
 
         return response.inserted_id
 
-    def find_all(self, db_name=None, collection_name=None, projection=None):
+    def find_all(self, db_name=None, collection_name=None, exclusion=None):
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
 
-        df = pd.DataFrame(list(self.collection.find(projection=projection)))
+        df = pd.DataFrame(list(self.collection.find(exclusion=exclusion)))
 
         return df
 
-    def find_one(self, db_name=None, collection_name=None, projection=None):
+    def find_one(self, db_name=None, collection_name=None, exclusion=None):
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
-        return pd.DataFrame(list(self.collection.find_one(collection_name, projection=projection)))
+        return pd.DataFrame(list(self.collection.find_one(collection_name, exclusion=exclusion)))
     
     def list_collections(self, db_name):
         if db_name: self.create_database(db_name)

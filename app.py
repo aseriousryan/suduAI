@@ -73,7 +73,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         end = time.time()
         time_collection_retrieval = end - start
 
-        data = mongo.find_all(database_name, collection, projection={'_id': 0})
+        data = mongo.find_all(database_name, collection, exclusion={'_id': 0})
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
@@ -89,31 +89,9 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         n_token_output = len(tokenize(os.environ['tokenizer'], output_log))
 
-        success = True
-        # Check for specific error message in the output
-        if "Agent stopped due to iteration limit or time limit" in result.get('output'):
-            success = False
-            data =  {
-                'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
-                'query': msg,
-                'output': result.get('output'),
-                'logs': output_log,
-                'n_token_output': n_token_output,
-                'response_time': end - start,
-                'collection_retrieval_time': time_collection_retrieval,
-                'collection': collection,
-                'database_name': database_name,
-                'success': success
-            }
-            id = mongo.insert_one(
-                data=data,
-                db_name=os.environ['mongodb_log_db'],
-                collection_name=database_name
-            )
+        error_message = "Agent stopped due to iteration limit or time limit"
 
-            error_detail = str({'error':'Agent stopped due to iteration limit or time limit.', 'mongo_id': str(id)})
-            raise HTTPException(status_code=405, detail=error_detail)
-        
+        success = error_message not in result.get('output')
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
@@ -127,19 +105,19 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'success': success
         }
 
-        # log 
         id = mongo.insert_one(
             data=data,
             db_name=os.environ['mongodb_log_db'],
             collection_name=database_name
         )
 
-         # Return a dictionary with the result
+        if not success:
+            error_detail = {'error': error_message, 'mongo_id': str(id)}
+            return HTTPException(status_code=405, detail=error_detail)
+
         return {'result': result.get('output'), 'mongo_id': str(id)}
-    except HTTPException as e:
-        # If the exception is an HTTPException, just raise it
-        raise e
-    except:
+    
+    except Exception:
         data =  {
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
@@ -152,11 +130,11 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         id = mongo.insert_one(
             data=data,
-            db_name=os.environ['mongodb_log_db'],
-            collection_name=database_name
+            db_name = os.environ['mongodb_log_db'],
+            collection_name = database_name
         )
         
-        error_detail = str({'error':traceback.format_exc(), 'mongo_id': str(id)})
+        error_detail = {'error': traceback.format_exc(), 'mongo_id': str(id)}
         raise HTTPException(status_code=404, detail=error_detail)
 
 if __name__ == "__main__":
