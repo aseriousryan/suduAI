@@ -88,7 +88,8 @@ else:
 
 writer = pd.ExcelWriter(args.save_path)
 for dataset_name, df_question in df_questions.items():
-    df = mongo.find_all(db_name='test_data', collection_name=dataset_name, projection={'_id': 0})
+
+    df = mongo.find_all(db_name='test_data', collection_name=dataset_name, exclusion={'_id': 0})
     table_desc = mongo.get_table_desc('test_data', dataset_name)
     
     dataframe_agent = llm_agent.create_dataframe_agent(df, table_desc)
