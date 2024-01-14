@@ -2,6 +2,7 @@ FROM ubuntu:22.04
 
 ARG MODEL
 ARG TOKENIZER
+ARG PROMPT
 ARG SUDUAI_ENV
 
 RUN apt-get update && apt-get -y install python3 python3-pip pkg-config python3-dev git htop build-essential nvidia-cuda-toolkit
@@ -11,10 +12,10 @@ RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 RUN echo Etc/UTC > /etc/timezone
 
 WORKDIR /app
-COPY requirements.txt .
 
+COPY requirements.txt .
 RUN pip install -r requirements.txt
-RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --force-reinstall llama-cpp-python --no-cache-dir
+RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --force-reinstall --verbose llama-cpp-python==0.2.27 
 
 # model weights
 RUN mkdir models/
@@ -25,8 +26,12 @@ COPY .env.$SUDUAI_ENV app.py version.md .
 COPY utils utils/
 COPY aserious_agent aserious_agent/
 COPY model_configs model_configs/
+
+# prompts
 RUN mkdir prompts/
 COPY prompts/collection_retriever_prompt.yml prompts/collection_retriever_prompt.yml
+RUN echo "Copying prompt file: $PROMPT"
+COPY prompts/$PROMPT prompts/$PROMPT
 
 ENV SUDUAI_ENV=$SUDUAI_ENV
 EXPOSE 8080

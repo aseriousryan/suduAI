@@ -20,6 +20,8 @@ load_dotenv(f'./.env.{args.env}')
 model_config = read_yaml(os.environ['model'])
 model = os.path.basename(model_config['model_path'])
 tokenizer = os.path.basename(os.environ['tokenizer'])
+prompt = os.path.basename(os.environ['prompt'])
+
 version = open('version.md').read()
 
 # copy weights over to current folder for docker build
@@ -33,6 +35,7 @@ if not os.path.exists(tokenizer):
 if 'chat' in args.build:
     build_cmd = f'docker build -f Dockerfile --no-cache ' \
         f'--build-arg MODEL={model} --build-arg TOKENIZER={tokenizer} ' \
+        f'--build-arg PROMPT={prompt} ' \
         f'--build-arg SUDUAI_ENV={args.env} ' \
         f'-t asai-sudu:{version} .'
     print(f'[*] Building chat app Docker image:\n{build_cmd}\n')
