@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-RUN CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 pip3 install llama-cpp-python
+RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python 
 
 # model weights
 RUN mkdir models/
