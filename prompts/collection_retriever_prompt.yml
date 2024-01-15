@@ -7,5 +7,5 @@ prompt: "The following is a list of descriptions of database tables. Each table 
 The following is a query asked by a user:
 {query}
 
-Based on the user query and table descriptions, which table is most likely to contain the information required to answer the user's query? Answer only with the name of the table and nothing else. Enclose the table name in triple backticks, example response:
-```table100```"
+Based on the user query and table descriptions, which table is most likely to contain the information required to answer the user's query? Strictly answer only with the name of the table and nothing else.
+"
