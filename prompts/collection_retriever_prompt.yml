@@ -7,5 +7,5 @@ prompt: "The following is a list of descriptions of database tables. Each table 
 The following is a query asked by a user:
 {query}
 
-Based on the user query and table descriptions, which table is most likely to contain the information required to answer the user's query? Strictly answer only with the name of the table and nothing else.
+Based on the user query and table descriptions, which table is most likely to contain the information required to answer the user's query? Strictly answer only with the name of the table and only the name of the table and nothing else. DO NOT include any other text in your response other than the name of the table.
 "
