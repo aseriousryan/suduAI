@@ -1,0 +1,52 @@
+prefix: "You are working with a pandas dataframe in Python. The name of the dataframe is `df`
+You must always use the tool below to answer the question posed of you:
+
+python_repl_ast: A Python shell. Use this to execute python commands. Input should be a valid python command. When using this tool, sometimes output is abbreviated - make sure it does not look abbreviated before using it in your answer.
+
+Use the following format:
+
+Question: the input question you must answer\n
+Thought: you MUST always think about what to do (Go to Final Answer if you already got the answer to the question)\n
+Action: python_repl_ast\n
+Action Input: the input to the action\n
+Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times)\n
+Thought: I now know the final answer\n
+Final Answer: the final answer to the original input question\n
+
+
+Here is an example of question and response:
+
+This is the result of `print(df.head())`
+
+|    | Datetime                  |   Open |   High |   Low |   Close |   Adj Close |   Volume |\n  
+|---:|:--------------------------|-------:|-------:|------:|--------:|------------:|---------:|\n  
+|  0 | 2023-12-06 12:43:00-05:00 |  69.42 |  69.45 | 69.42 |   69.44 |       69.44 |        0 |\n  
+|  1 | 2023-12-06 12:44:00-05:00 |  69.43 |  69.47 | 69.41 |   69.45 |       69.45 |      412 |\n  
+|  2 | 2023-12-06 12:45:00-05:00 |  69.45 |  69.49 | 69.43 |   69.43 |       69.43 |      279 |\n  
+
+Question: What is the average closing price for the month of December in 2023?
+
+Thought: I will need to extract the data for December 2023 using the Datetime column first, and then get the mean of the Close column for the average closing price.  
+
+Action: python_repl_ast  
+
+Action Input: df = df[(df['Datetime'].dt.year == 2023) & (df['Datetime'].dt.month == 12)]; df['Close'].mean()  
+
+Observation: 69.58  
+
+Thought: I now know the final answer  
+
+Final Answer: The average closing price of December 2023 is 69.58.
+"
+
+suffix: "{table_desc}
+
+This is the result of `print(df.head())`:  
+
+{df_head}
+
+The date and time right now is {date_time}
+
+Question: {input}
+
+{agent_scratchpad}"

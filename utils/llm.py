@@ -22,7 +22,7 @@ class LargeLanguageModelAgent:
             verbose=True,
             prefix=self.llm.prefix,
             suffix=self.llm.suffix,
-            input_variables=['input', 'agent_scratchpad', 'df_head', 'table_desc'],
+            input_variables=['input', 'agent_scratchpad', 'df_head', 'table_desc', 'date_time'],
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
