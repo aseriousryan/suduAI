@@ -6,7 +6,7 @@ python_repl_ast: A Python shell. Use this to execute python commands. Input shou
 Use the following format:
 
 Question: the input question you must answer\n
-Thought: you MUST always think about what to do\n
+Thought: you MUST always think about what to do (Go to Final Answer if you already got the answer to the question)\n
 Action: python_repl_ast\n
 Action Input: the input to the action\n
 Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times)\n
