@@ -1,4 +1,5 @@
-from langchain.llms import LlamaCpp, OpenAI, Ollama
+from langchain_community.llms import LlamaCpp, Ollama
+from langchain_openai import OpenAI
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
@@ -26,7 +27,7 @@ class LargeLanguageModelAgent:
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
-            max_iterations=10,
+            max_iterations=5,
             max_execution_time=600,
             early_stopping_method='force', 
         )
@@ -47,7 +48,8 @@ class LargeLanguageModel:
                 streaming=True,
                 # stop=kwargs['stop'],
                 n_gpu_layers=kwargs['n_gpu_layers'],
-                n_ctx=kwargs['context_length']
+                n_ctx=kwargs['context_length'],
+                offload_kqv=True
             )   
     
         elif (kwargs['model_type'] == 'ollama'):
@@ -61,7 +63,7 @@ class LargeLanguageModel:
             import os
             from dotenv import load_dotenv
             load_dotenv('.env')
-            self.llm = OpenAI(openai_api_key=os.environ['openai_api_key'])
+            self.llm = OpenAI(model_name=kwargs['gpt_type'], openai_api_key=kwargs['openai_api_key'])
 
         # simple runnable
         self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
