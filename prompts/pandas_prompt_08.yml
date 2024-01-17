@@ -51,8 +51,6 @@ This is the result of `print(df.head())`:
 
 {df_head}
 
-The date and time right now is {date_time}
-
-Question: {input}
+Question: {input} The date and time now is {date_time}
 
 {agent_scratchpad}"
