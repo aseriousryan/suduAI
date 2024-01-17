@@ -63,7 +63,7 @@ class LargeLanguageModel:
             import os
             from dotenv import load_dotenv
             load_dotenv('.env')
-            self.llm = OpenAI(model_name=kwargs['gpt_type'], openai_api_key=kwargs['openai_api_key'])
+            self.llm = OpenAI(model_name=kwargs['gpt_type'], openai_api_key=os.environ['openai_api_key'])
 
         # simple runnable
         self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])
