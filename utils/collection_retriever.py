@@ -40,7 +40,9 @@ def llm_retriever(llm, query, database_name):
     prompt = prompt.format(query=query, table_descriptions=table_descs)
     response = llm.llm_runnable.invoke({'system_message': system_message, 'prompt': prompt.format(query=query)})
     table_name = response.strip()
-    # table_name = table_name.split('```')[1]
+
+    if table_name not in df_desc['collection'].to_list():
+        raise RuntimeError(f'[Collection Retriever] No collection retrieved:\n{table_name}')
 
     description = df_desc.loc[df_desc['collection'] == table_name, 'description'].iloc[0]
 
