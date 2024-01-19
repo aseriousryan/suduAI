@@ -42,7 +42,7 @@ class LargeLanguageModel:
                 model_path=kwargs['model_path'],
                 temperature=kwargs['temperature'],
                 max_tokens=kwargs['max_tokens'],
-                top_p=1,
+                top_p=kwargs['top_p'],
                 callback_manager=callback_manager,
                 verbose=True,
                 streaming=True,
