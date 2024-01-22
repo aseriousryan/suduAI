@@ -19,7 +19,7 @@ load_dotenv(f'./.env.{args.env}')
 
 model_config = read_yaml(os.environ['model'])
 model = os.path.basename(model_config['model_path'])
-sent_trans_model = os.path.normpath(os.path.basename(os.environ['collection_retriever_sentence_transformer']))
+sent_trans_model = os.path.basename(os.path.normpath(os.environ['collection_retriever_sentence_transformer']))
 tokenizer = os.path.basename(os.environ['tokenizer'])
 prompt = os.path.basename(os.environ['prompt'])
 version = open('version.md').read()
@@ -55,4 +55,5 @@ if 'upload' in args.build:
 # clean up
 os.remove(model)
 os.remove(tokenizer)
+os.remove(sent_trans_model)
 
