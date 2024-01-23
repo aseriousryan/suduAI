@@ -55,5 +55,5 @@ if 'upload' in args.build:
 # clean up
 os.remove(model)
 os.remove(tokenizer)
-os.remove(sent_trans_model)
+os.rmdir(sent_trans_model)
 
