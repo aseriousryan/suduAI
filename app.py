@@ -57,6 +57,7 @@ async def root():
         version = f.read()
 
     model_config['API_version'] = version 
+    model_config['env'] = ENV
 
     return JSONResponse(content=model_config)
 
