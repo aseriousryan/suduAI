@@ -43,7 +43,7 @@ class MongoDBController:
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
 
-        df = pd.DataFrame(list(self.collection.find(exclusion=exclusion)))
+        df = pd.DataFrame(list(self.collection.find(projection=exclusion)))
 
         return df
 

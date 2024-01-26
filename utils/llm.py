@@ -1,4 +1,4 @@
-from langchain.llms import LlamaCpp, OpenAI, Ollama
+from langchain.llms import LlamaCpp, OpenAI
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
