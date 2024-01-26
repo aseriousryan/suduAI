@@ -1,5 +1,7 @@
 model_type : openai
 
+gpt_type: gpt-3.5-turbo-instruct
+
 prompt_template: "{system_message}\n\n{prompt}"
 
 prefix_template: "{prefix_text}"
