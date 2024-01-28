@@ -62,7 +62,7 @@ async def root():
     return JSONResponse(content=model_config)
 
 @app.post('/chat')
-async def chatmsg(msg: str, database_name: str, collection: str = None):
+async def chatmsg(msg: str, database_name: str, collection: str = None, note: str = None):
     # database_name = company name
     try:
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
@@ -107,6 +107,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
             'database_name': database_name,
+            'note': note,
             'success': success
         }
 
@@ -127,6 +128,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
             'error': traceback.format_exc(),
+            'note': note,
             'success': False
         }
 
