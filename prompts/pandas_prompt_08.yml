@@ -51,6 +51,6 @@ This is the result of `print(df.head())`:
 
 {df_head}
 
-Question: The date and time now is {date_time}. {input}
+Question: The date and time now is {date_time}, only use this information if the following question mentioned about date and time. {input}
 
 {agent_scratchpad}"
