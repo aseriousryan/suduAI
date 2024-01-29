@@ -2,7 +2,7 @@ from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
 from utils.common import tokenize, ENV, read_yaml
-from utils.collection_retriever import llm_retriever
+from utils.collection_retriever import sentence_transformer_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
@@ -57,11 +57,12 @@ async def root():
         version = f.read()
 
     model_config['API_version'] = version 
+    model_config['env'] = ENV
 
     return JSONResponse(content=model_config)
 
 @app.post('/chat')
-async def chatmsg(msg: str, database_name: str, collection: str = None):
+async def chatmsg(msg: str, database_name: str, collection: str = None, note: str = None):
     # database_name = company name
     try:
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
@@ -69,7 +70,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         # retrieve collection
         start = time.time()
         if collection is None:
-            collection, table_desc = llm_retriever(llm_agent.llm, msg, database_name)
+            collection, table_desc = sentence_transformer_retriever(msg, database_name)
         else:
             table_desc = mongo.get_table_desc(database_name, collection)
         end = time.time()
@@ -106,6 +107,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
             'database_name': database_name,
+            'note': note,
             'success': success
         }
 
@@ -126,6 +128,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
             'error': traceback.format_exc(),
+            'note': note,
             'success': False
         }
 
