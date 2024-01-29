@@ -20,6 +20,11 @@ def tokenize(tokenizer_file, text):
     return tokens
 
 def convert_to_date(df, date_pattern=None):
+    # Clean column names
+    for col in df.columns:
+        if '.' in col or ' ' in col:
+            df.rename(columns={col: col.replace(' ', '_').replace('.', '')}, inplace=True)
+    
     def convert_column_to_date(date_series):
         try:
             return pd.to_datetime(date_series, dayfirst=True)
@@ -44,6 +49,9 @@ def convert_to_date(df, date_pattern=None):
         df[f"{date_col}_Year"] = df[date_col].dt.year
         df[f"{date_col}_Month"] = df[date_col].dt.month
         df[f"{date_col}_Day"] = df[date_col].dt.day
+        df = df.drop(columns=[date_col])
     
-    return df.drop(columns=date_columns)
+    return df
+
+
 
