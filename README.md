@@ -13,3 +13,8 @@ To run upload endpoint image
 ```
 $ docker run -d -p 8082:8082 --name upload_sudu registry.gitlab.com/dark_knight/aserious-sudu:upload-0.1
 ```
+
+# Update Table Description Embedding in MongoDB After Training
+```
+$ python scripts/update_desc_emb.py --env development --model models/Trained_Model_V5/
+```
