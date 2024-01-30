@@ -2,7 +2,7 @@ from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
 from utils.common import tokenize, ENV, read_yaml
-from utils.collection_retriever import sentence_transformer_retriever
+from utils.collection_retriever import sentence_transformer_retriever, cross_encoder_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
@@ -70,7 +70,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         # retrieve collection
         start = time.time()
         if collection is None:
-            collection, table_desc = sentence_transformer_retriever(msg, database_name)
+            collection, table_desc = cross_encoder_retriever(msg, database_name)
         else:
             table_desc = mongo.get_table_desc(database_name, collection)
         end = time.time()

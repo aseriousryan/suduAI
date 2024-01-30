@@ -5,6 +5,7 @@ from utils.common import read_yaml, ENV
 from utils.mongoDB import MongoDBController
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
+from sentence_transformers.cross_encoder import CrossEncoder
 from sklearn.metrics.pairwise import cosine_similarity
 
 import numpy as np
@@ -20,7 +21,9 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
-model = SentenceTransformer(os.environ['collection_retriever_sentence_transformer'], device='cuda')
+# model = SentenceTransformer(os.environ['collection_retriever_sentence_transformer'], device='cuda')
+model = None
+cross_encoder = CrossEncoder(os.environ['collection_retriever_cross_encoder'])
 
 def llm_retriever(llm, query, database_name):
     retriever_prompt = read_yaml('./prompts/collection_retriever_prompt.yml')
@@ -66,6 +69,20 @@ def sentence_transformer_retriever(query, database_name):
     
     return table_name, description
 
+def cross_encoder_retriever(query, database_name):
+    df_desc = mongo.find_all(os.environ['mongodb_table_descriptor'], database_name)
+    table_desc = df_desc['description'].tolist()
+    table_desc = [x.split('\nThis is the quantitative information of the table:')[0] for x in table_desc]
+
+    X = [[x, query] for x in table_desc]
+    y = cross_encoder.predict(X)
+    chosen = np.argmax(y)
+    table_name = df_desc.iloc[chosen]['collection']
+    description = df_desc.iloc[chosen]['description']
+    
+    return table_name, description
+
+
 
 if __name__ == '__main__':
-    print(sentence_transformer_retriever('What is the total delivery order?', 'de_carton'))
+    print(cross_encoder_retriever('What is the total delivery order?', 'de_carton'))
