@@ -1,7 +1,5 @@
-system_message: "You are an expert context question generator."
+system_message: "You are an expert context question maker."
 
-prompt: " This  following is a query asked by a user:
-{query}
+prompt: " Generate {number_variations} distinct variations of the following question: '{query}' without any indexing. Strictly exclude indexes for all your responses. All variations must have the same meaning as the original question. Avoid jargon in the variations. Avoid repetition. Strictly answer only with the question's variation in plain texts. DO NOT include any other text in your response other than the question variations. 
 
-Based on the user query generate {number_variations} distinct variation of the given question. All variations must have the same meaning as the original question. Avoid jargon in the variations. Avoid repetition. Make each question distinct without losing meaning. Can use synonyms. The variations should a have similar tone. Strictly answer only with the questions variation and nothing else. DO NOT include any other text in your response other than the questions.
 "

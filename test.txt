@@ -1,0 +1,5 @@
+What's the total overdue amount for all customers?
+Who's got the highest overdue aging amounts?
+How many customers did not make any payments this month based on aging?
+Any customers with aging amounts for 3 months or more and What's the total?
+Can I get names and numbers of customers with overdue aging amounts?
