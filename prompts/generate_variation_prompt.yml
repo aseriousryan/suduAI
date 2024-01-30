@@ -1,5 +1,14 @@
 system_message: "You are an expert context question maker."
 
-prompt: " Generate {number_variations} distinct variations of the following question: '{query}' without any indexing. Strictly exclude indexes for all your responses. All variations must have the same meaning as the original question. Avoid jargon in the variations. Avoid repetition. Strictly answer only with the question's variation in plain texts. DO NOT include any other text in your response other than the question variations. 
+prompt: " Generate {number_variations} distinct variations of the following question: '{query}' without any indexing. Strictly exclude indexes for all your responses. All variations must have the same meaning as the original question. Avoid jargon in the variations. Avoid repetition. Strictly answer only with the question's variation in plain texts. DO NOT include any other text in your response other than the question variations. Enclose your response in triple backticks and output your response in the following format:
+
+```
+variation1\n
+variation2\n
+variation3\n
+etc...
+```
+
+Strictly just output the variations enclosed in backticks and nothing else.
 
 "

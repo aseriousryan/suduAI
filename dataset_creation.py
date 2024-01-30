@@ -1,25 +1,35 @@
 import pandas as pd
 import os
-from dotenv import load_dotenv
 import yaml
+
+from dotenv import load_dotenv
 from utils.common import read_yaml
 from utils.llm import LargeLanguageModel
 
 def llm_retriever(llm, questions, variation_number):
-    variation_prompt = read_yaml(os.environ['prompt'])
+    variation_prompt = read_yaml('./prompts/generate_variation_prompt.yml')
     system_message = variation_prompt['system_message']
     prompt_template = variation_prompt['prompt']
 
-    variations_data = pd.DataFrame()
+    variations_data = []
 
     for index, question in enumerate(questions):
         prompt = prompt_template.format(query=question, number_variations=variation_number)
 
         # Generate variations for the current question
         generated_variations = generate_variations(llm, prompt, system_message)
+        generated_variations = generated_variations.split('```\n')[1].split('\n```')[0]
+        generated_variations = generated_variations.split('\n')
+        
+        # add the original question to the top of the list as the first variation
+        generated_variations = [question] + generated_variations
 
         # Store the entire variation sentence in a separate cell
-        variations_data.loc[0, f'{question}']= generated_variations
+        variations_data.append({
+            'question': question,
+            'variations': generated_variations
+        })
+
 
     return variations_data
 
@@ -60,13 +70,16 @@ def main():
 
     variation_number = 2  # Adjust the number of variations to generate
 
-    # Get variations
-    variations_data = llm_retriever(llm, questions, variation_number)
-
     # Save variations
     output_file = "test.xlsx"
-    variations_data.to_excel(output_file, index=False)
+    writer = pd.ExcelWriter(output_file)
+    variations_data = llm_retriever(llm, questions, variation_number)
+    for idx, data in enumerate(variations_data):
+        question = data['question']
+        variations = pd.DataFrame(data['variations'], columns=['variation'])
+        variations.to_excel(writer, sheet_name=f'{idx}', index=False)
 
+    writer.close()
     print(f"Variations saved to {output_file}")
 
 if __name__ == "__main__":
