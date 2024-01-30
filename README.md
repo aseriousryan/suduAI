@@ -18,3 +18,8 @@ $ docker run -d -p 8082:8082 --name upload_sudu registry.gitlab.com/dark_knight/
 ```
 $ python scripts/update_desc_emb.py --env development --model models/Trained_Model_V5/
 ```
+
+# Backup MongoDB (download MongoDB to a local folder)
+```
+$ python scripts/backup_mongodb.py --output tmp/ --env <production|development>
+```
