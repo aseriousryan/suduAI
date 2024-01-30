@@ -70,6 +70,8 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         start = time.time()
         if collection is None:
             collection, table_desc = llm_retriever(llm_agent.llm, msg, database_name)
+        else:
+            table_desc = mongo.get_table_desc(database_name, collection)
         end = time.time()
         time_collection_retrieval = end - start
 
@@ -77,12 +79,14 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
+        now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
+        date_time = now.strftime('%d %B %Y, %H:%M')
         dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc)
 
         # capture terminal outputs to log llm output
         rp.start()
         start = time.time()
-        result = dataframe_agent({'input': msg})
+        result = dataframe_agent({'input': msg, 'date_time': date_time})
         output_log = rp.get_output().split('Prompt after formatting:')[-1]
         end = time.time()
         rp.stop()
@@ -93,7 +97,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         success = error_message not in result.get('output')
         data =  {
-            'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
+            'datetime': now,
             'query': msg,
             'output': result.get('output'),
             'logs': output_log,
@@ -138,4 +142,4 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         raise HTTPException(status_code=404, detail=error_detail)
 
 if __name__ == "__main__":
-    uvicorn.run('app:app', host="0.0.0.0", port=8080, reload=False)
+    uvicorn.run('app:app', host="0.0.0.0", port=8085, reload=False)

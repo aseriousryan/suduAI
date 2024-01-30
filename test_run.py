@@ -4,6 +4,7 @@ from langchain.globals import set_verbose
 from langchain.prompts import PromptTemplate
 from langchain.schema import StrOutputParser
 from dotenv import load_dotenv
+from utils.common import ENV
 
 import os
 import sys
@@ -28,7 +29,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--save_path', type=str, required=True)
 ap.add_argument('--evaluator', type=str, default='./model_configs/leoscorpius.yml')
 ap.add_argument('--model', type=str, default='./model_configs/leoscorpius.yml')
-ap.add_argument('--prompt', type=str, default='./prompts/pandas_prompt_01.yml')
+ap.add_argument('--prompt', type=str, default='./prompts/pandas_prompt_06.yml')
 ap.add_argument('--use-custom-prompt', action='store_true', default=False)
 ap.add_argument('--questions_answers', type=str, default='./testing/QnA.xlsx')
 ap.add_argument('--log-file-path', type=str, default='./logs/debug.log')
@@ -68,6 +69,26 @@ llm.load_prefix_suffix(
     suffix_text=prompt_config['suffix']
 )
 
+# Function to load YAML content from a file
+def load_yaml_file(file_path):
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
+
+# Load YAML files using paths from environment variables
+prompt_config_path = os.environ.get('prompt')
+evaluate_prompt_path = os.environ.get('evaluate_prompt')
+
+prompt_config = load_yaml_file(prompt_config_path)
+evaluate_prompt_template = load_yaml_file(evaluate_prompt_path)
+
+# Rest of your code
+llm_agent = LargeLanguageModelAgent(args.model)
+llm = llm_agent.llm
+llm.load_prefix_suffix(
+    prefix_text=prompt_config['prefix'],
+    suffix_text=prompt_config['suffix']
+)
+
 if args.model != args.evaluator:
     with open(args.evaluator, 'r') as f:
         evaluator_config = yaml.safe_load(f)
@@ -88,7 +109,6 @@ else:
 
 writer = pd.ExcelWriter(args.save_path)
 for dataset_name, df_question in df_questions.items():
-
     df = mongo.find_all(db_name='test_data', collection_name=dataset_name, exclusion={'_id': 0})
     table_desc = mongo.get_table_desc('test_data', dataset_name)
     

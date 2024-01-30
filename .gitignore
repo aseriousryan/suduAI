@@ -8,3 +8,6 @@ logs/
 .env
 .env.development
 .env.production
+SentenceTransformer_Training/
+QnA.xlsx
+README.md
