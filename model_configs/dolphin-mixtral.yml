@@ -1,9 +1,10 @@
 model_type: llama-cpp
-model_path: models/dolphin-2.6-mixtral-8x7b.Q5_K_M.gguf
-context_length: 32768
+model_path: models/dolphin-2.7-mixtral-8x7b.Q4_K_M.gguf
+context_length: 8192
 max_tokens: 512
 temperature: 0.0
 n_gpu_layers: 10
+top_p: 0.7
 last_n_tokens: 2048
 prompt_template: "<|im_start|>system\n{system_message}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant"
 
