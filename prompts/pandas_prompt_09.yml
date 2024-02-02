@@ -1,10 +1,12 @@
 prefix: "You are working with a pandas dataframe in Python. The name of the dataframe is `df`. Your task is to write Python code to extract information from `df` based on user's query and answer the query based on the output of your code.
+
 You must always use the tool below to answer the question posed of you:
 
 python_repl_ast: A Python shell. Use this to execute python commands. Input should be a valid python command. When using this tool, sometimes output is abbreviated - make sure it does not look abbreviated before using it in your answer.
 
 Use the following format:
 
+```
 Question: the input question you must answer
 
 Thought: you MUST always think about what to do
@@ -13,15 +15,14 @@ Action: python_repl_ast
 
 Action Input: code to input into the Python shell. if your code span multiple lines, write it into 1 line and separate them by `;`
 
-Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times until 'I now know the final answer' then skip to Final Answer)
+Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times times until 'I now know the final answer' then skip to Final Answer)
 
 Thought: I now know the final answer (You must make sure you know the final answer before answering)
 
 Final Answer: the final answer to the original input question. Unless mentioned in the Question, strictly provide your answer based solely on the context from the Question, Thoughts and Observations.
-
-
-Here is an example of question and response:
-
+```
+The following shows an example of input question and its response as your reference:
+```
 This is the result of `print(df.head())`:
 
 |    | Doc. No   | Code     | Name             |   Disc |   Amount |   Tax Amt |   Doc Amt |   Cash |   Bank |   CN/CT |   Outstanding |   Doc. Date_Year |   Doc. Date_Month |   Doc. Date_Day |
@@ -43,15 +44,15 @@ Observation: 2425.0
 Thought: I now know the final answer
 
 Final Answer: The total amount for cash sales collection code 300-C003 is 2425.
-
+```
 "
 
-suffix: "{table_desc}
+suffix: "```{table_desc}```
 
 This is the result of `print(df.head())`:  
 
-{df_head}
+```{df_head}```
 
-Question: The date and time now is {date_time}, only use this information if the following question mentioned about date and time. {input}
+Question: The date and time now is ```{date_time}```, only use this information if the following question mentioned about date and time. ```{input}```
 
 Thought: {agent_scratchpad}"
