@@ -70,7 +70,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         # retrieve collection
         start = time.time()
         if collection is None:
-            collection, table_desc = sentence_transformer_retriever(msg, database_name)
+            collection, table_desc, desc_cos_sim = sentence_transformer_retriever(msg, database_name)
         else:
             table_desc = mongo.get_table_desc(database_name, collection)
         end = time.time()
@@ -107,6 +107,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
             'database_name': database_name,
+            'desc_cos_sim': desc_cos_sim,
             'note': note,
             'success': success
         }
