@@ -3,6 +3,7 @@ sys.path.append('.')
 
 import os
 import argparse
+import datetime
 
 from sentence_transformers import SentenceTransformer
 from utils.mongoDB import MongoDBController
@@ -29,8 +30,12 @@ for collection in collections:
     print(f'[*] Updating {collection}')
     df = mongo.find_all(os.environ['mongodb_table_descriptor'], collection)
     for idx, row in df.iterrows():
-        desc = row['description'].split('\nThis is the quantitative information ')[0].strip()
+        if 'retrieval_description' not in row.index or isinstance(row['retrieval_description'], float):
+            desc = row['description']
+        else:
+            desc = row['retrieval_description']
+        desc = desc.split('\nThis is the quantitative information ')[0].strip()
         emb = model.encode(desc, convert_to_numpy=True).tolist()
         query_criteria = {'_id': row['_id']}
-        update_data = {'$set': {'embedding': emb}}
+        update_data = {'$set': {'embedding': emb, 'datetime': datetime.datetime.now()}}
         mongo.collection.update_one(query_criteria, update_data)

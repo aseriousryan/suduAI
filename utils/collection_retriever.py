@@ -64,7 +64,7 @@ def sentence_transformer_retriever(query, database_name):
     table_name = df_desc.iloc[chosen]['collection']
     description = df_desc.iloc[chosen]['description']
     
-    return table_name, description
+    return table_name, description, cos_sims[chosen]
 
 
 if __name__ == '__main__':
