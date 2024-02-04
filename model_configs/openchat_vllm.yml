@@ -1,0 +1,12 @@
+model_type: vllm
+hfmodel: TheBloke/openchat-3.5-0106-GPTQ
+max_new_tokens: 2048
+temperature: 0.0
+top_k: 10
+top_p: 0.95
+gpu_size: 1
+quantization: gptq
+download_dir: /home/seriousco/aserious-sudu/models/openchat
+prompt_template: "GPT4 Correct User: {system_message} {prompt}<|end_of_turn|>GPT4 Correct Assistant:"
+prefix_template: "GPT4 Correct User: You are a helpful data analyst that follows the instructions of your user strictly.\n{prefix_text}\n"
+suffix_template: "{suffix_text}<|end_of_turn|>GPT4 Correct Assistant:"
