@@ -1,4 +1,4 @@
-from langchain_community.llms import LlamaCpp, Ollama
+from langchain_community.llms import LlamaCpp, Ollama,VLLM
 from langchain_openai import OpenAI
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -59,6 +59,22 @@ class LargeLanguageModel:
                 repeat_last_n=-1,
                 num_ctx=kwargs['context_length'],
             )
+        elif (kwargs['model_type'] == 'vllm'):
+            dtype = "half" if kwargs['quantization'] == "gptq" else "auto"
+            self.llm = VLLM(
+                model=kwargs['hfmodel'],
+                tensor_parallel_size=kwargs['gpu_size'],
+                trust_remote_code=True,  # mandatory for hf models
+                max_new_tokens=kwargs['max_new_tokens'],
+                top_k=kwargs['top_k'],
+                top_p=kwargs['top_p'],
+                temperature=kwargs['temperature'],
+                vllm_kwargs={"quantization": kwargs['quantization']},
+                gpu_memory_utilization=1.0, #can adjust your gpu usage to 0.8,0.5 ....
+                download_dir=kwargs['download_dir'],
+                dtype=dtype
+            )
+
         else:
             import os
             from dotenv import load_dotenv

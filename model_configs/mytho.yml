@@ -1,0 +1,16 @@
+model_type: vllm
+hfmodel: TheBloke/MythoMist-7B-AWQ
+max_new_tokens: 512
+temperature: 0.0
+top_k: 10
+top_p: 0.90
+gpu_size: 1
+quantization: awq
+download_dir:  models/MythoMist
+prompt_template: "### Instruction:
+{prompt}
+
+### Response:"
+
+prefix_template: "### Instruction:\nYou are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.\n{prefix_text}\n"
+suffix_template: "{suffix_text}\n\n### Response:"
