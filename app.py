@@ -90,7 +90,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         # capture terminal outputs to log llm output
         rp.start()
         start = time.time()
-        result = dataframe_agent({'input': msg, 'date_time': date_time, 'example': prompt_example})
+        result = dataframe_agent({'input': msg, 'date_time': date_time, 'prompt_example': prompt_example})
         output_log = rp.get_output().split('Prompt after formatting:')[-1]
         end = time.time()
         rp.stop()
