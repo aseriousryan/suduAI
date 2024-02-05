@@ -3,6 +3,7 @@ from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
 from utils.common import tokenize, ENV, read_yaml
 from utils.collection_retriever import sentence_transformer_retriever
+from utils.prompt_retriever import  prompt_example_sentence_transformer_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
@@ -71,6 +72,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         start = time.time()
         if collection is None:
             collection, table_desc, desc_cos_sim = sentence_transformer_retriever(msg, database_name)
+            prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(msg, database_name)
         else:
             table_desc = mongo.get_table_desc(database_name, collection)
         end = time.time()
@@ -82,12 +84,12 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
 
         now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
         date_time = now.strftime('%d %B %Y, %H:%M')
-        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc)
+        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc, prompt_example)
 
         # capture terminal outputs to log llm output
         rp.start()
         start = time.time()
-        result = dataframe_agent({'input': msg, 'date_time': date_time})
+        result = dataframe_agent({'input': msg, 'date_time': date_time, 'example': prompt_example})
         output_log = rp.get_output().split('Prompt after formatting:')[-1]
         end = time.time()
         rp.stop()
@@ -109,6 +111,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
             'database_name': database_name,
             'desc_cos_sim': desc_cos_sim,
             'note': note,
+            'query_retrieval': question_retrieval,
             'success': success
         }
 
