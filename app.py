@@ -74,6 +74,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
             collection, table_desc, desc_cos_sim = sentence_transformer_retriever(msg, database_name)
         else:
             table_desc = mongo.get_table_desc(database_name, collection)
+            desc_cos_sim = -1
 
         prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(msg, database_name)
         end = time.time()
