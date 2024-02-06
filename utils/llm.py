@@ -1,5 +1,5 @@
 from langchain_community.llms import LlamaCpp, Ollama
-from langchain_openai import OpenAI
+from langchain_openai import OpenAI, ChatOpenAI
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
@@ -63,7 +63,12 @@ class LargeLanguageModel:
             import os
             from dotenv import load_dotenv
             load_dotenv('.env')
-            self.llm = OpenAI(model_name=kwargs['gpt_type'], openai_api_key=os.environ['openai_api_key'])
+            if 'gpt-3' in kwargs['gpt_type']:
+                self.llm = OpenAI(model_name=kwargs['gpt_type'], openai_api_key=os.environ['openai_api_key'])
+            elif 'gpt-4' in kwargs['gpt_type']:
+                self.llm = ChatOpenAI(model_name=kwargs['gpt_type'], openai_api_key=os.environ['openai_api_key'])
+            else:
+                raise NotImplementedError('GPT type not available')
 
         # simple runnable
         self.prompt_template = PromptTemplate.from_template(kwargs['prompt_template'])

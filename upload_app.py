@@ -37,8 +37,12 @@ mongo = MongoDBController(
 async def root():
     with open('./version.md', 'r') as f:
         version = f.read()
+    content = {
+        'version': version,
+        'env': ENV
+    }
 
-    return JSONResponse(content=version)
+    return JSONResponse(content=content)
 
 
 @app.post('/upload')
@@ -78,14 +82,15 @@ def upload(
         os.remove(file.filename)
 
         # add table description to database
-        description_df, description_length = table_descriptor.get_table_description(df, desc)
+        description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
         # the collection name in description database is the uuid
         mongo.create_collection(uuid)
         table_desc_id = mongo.insert_one({
             'collection': collection_name, 
             'description': description_df,
-            'token_length': description_length
+            'token_length': description_length,
+            'embedding': description_emb
         })
         table_desc_id = str(table_desc_id)
 
