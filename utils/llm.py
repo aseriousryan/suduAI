@@ -50,7 +50,8 @@ class LargeLanguageModel:
                 # stop=kwargs['stop'],
                 n_gpu_layers=kwargs['n_gpu_layers'],
                 n_ctx=kwargs['context_length'],
-                offload_kqv=True
+                offload_kqv=True,
+                seed=6969
             )   
     
         elif (kwargs['model_type'] == 'ollama'):
