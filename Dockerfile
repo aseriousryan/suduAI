@@ -4,7 +4,8 @@ ARG MODEL
 ARG TOKENIZER
 ARG PROMPT
 ARG SUDUAI_ENV
-ARG SENT_TRANS_MODEL
+ARG COLLECTION_RETRIEVER_ST
+ARG PROMPT_EXAMPLE_ST
 
 RUN apt-get update && apt-get -y install python3 python3-pip pkg-config python3-dev git htop build-essential nvidia-cuda-toolkit
 
@@ -22,7 +23,8 @@ RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --force-reinstall --verbose llama
 RUN mkdir models/
 COPY $MODEL models/$MODEL
 COPY $TOKENIZER models/$TOKENIZER
-COPY $SENT_TRANS_MODEL models/$SENT_TRANS_MODEL
+COPY $COLLECTION_RETRIEVER_ST models/$COLLECTION_RETRIEVER_ST
+COPY $PROMPT_EXAMPLE_ST models/$PROMPT_EXAMPLE_ST
 
 COPY .env.$SUDUAI_ENV app.py version.md .
 COPY utils utils/

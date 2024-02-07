@@ -1,0 +1,12 @@
+model_type: llama-cpp
+model_path: models/nous-hermes-2-solar-10.7b.Q6_K.gguf
+context_length: 8192
+max_tokens: 512
+temperature: 0.0
+n_gpu_layers: 50
+top_p: 0.7
+last_n_tokens: 2048
+prompt_template: "<|im_start|>system\n{system_message}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant"
+
+prefix_template: "<|im_start|>system\nYou are a data scientist with great analysis and Python coding skills.<|im_end|>\n<|im_start|>user\n{prefix_text}\n"
+suffix_template: "{suffix_text}<|im_end|>\n<|im_start|>assistant"
