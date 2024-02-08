@@ -28,9 +28,9 @@ class LargeLanguageModelAgent:
             agent_executor_kwargs={'handle_parsing_errors': True},
             include_df_in_prompt=True,
             return_intermediate_steps=True,
-            max_iterations=5,
+            max_iterations=6,
             max_execution_time=600,
-            early_stopping_method='force', 
+            early_stopping_method='generate'
         )
 
 class LargeLanguageModel:
