@@ -11,7 +11,7 @@ Thought: you MUST always think about what to do
 
 Action: python_repl_ast
 
-Action Input: code to input into the Python shell. if your code span multiple lines, write it into 1 line and separate them by `;`
+Action Input: code to input into the Python shell. Enclose your code in triple backticks.
 
 Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times  until 'I now know the final answer' then skip to Final Answer)
 

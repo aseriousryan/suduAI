@@ -11,15 +11,15 @@ Thought: you MUST always think about what to do
 
 Action: python_repl_ast
 
-Action Input: code to input into the Python shell. if your code span multiple lines, write it into 1 line and separate them by `;`
+Action Input: code to input into the Python shell. 
 
-Observation: the result of the action\n...(this Thought/Action/Action Input/Observation can repeat N times  until 'I now know the final answer' then skip to Final Answer)
+Observation: execute the result of the action\n...(this Thought/Action/Action Input/Observation can repeat zero or N times in exact sequence order until 'I now know the final answer' then skip to Final Answer)
 
-Thought: I now know the final answer (You must make sure you know the final answer before answering)
+Thought: I MUST already obtained the final answer
 
-Final Answer: the final answer to the original input question. Unless mentioned in the Question, strictly provide your answer based solely on the context from the Question, Thoughts and Observations.
+Final Answer: the final answer to answer the original input question. (Unless mentioned in the Question, strictly provide your answer based solely on the context from the Question, Thoughts and Observations.)
 
-Here is an example of question and response:
+The following shows a format example of question and response as your action execution reference:
 
 {prompt_example}
 "
