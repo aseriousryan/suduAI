@@ -4,6 +4,10 @@ sys.path.append('.')
 from utils.common import read_yaml, ENV
 from utils.mongoDB import MongoDBController
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+import numpy as np
 
 import os
 
@@ -15,6 +19,8 @@ mongo = MongoDBController(
     username=os.environ['mongodb_user'], 
     password=os.environ['mongodb_password']
 )
+
+model = SentenceTransformer(os.environ['collection_retriever_sentence_transformer'], device='cuda')
 
 def llm_retriever(llm, query, database_name):
     retriever_prompt = read_yaml('./prompts/collection_retriever_prompt.yml')
@@ -48,16 +54,18 @@ def llm_retriever(llm, query, database_name):
 
     return table_name, description
 
+def sentence_transformer_retriever(query, database_name):
+    df_desc = mongo.find_all(os.environ['mongodb_table_descriptor'], database_name)
+    query_emb = model.encode(query, convert_to_numpy=True).reshape(1, -1)
+
+    desc_emb = np.stack(df_desc['embedding'].values)
+    cos_sims = cosine_similarity(query_emb, desc_emb)[0]
+    chosen = np.argmax(cos_sims)
+    table_name = df_desc.iloc[chosen]['collection']
+    description = df_desc.iloc[chosen]['description']
+    
+    return table_name, description, cos_sims[chosen]
+
+
 if __name__ == '__main__':
-    from utils.llm import LargeLanguageModel
-    model_config = read_yaml('./model_configs/leoscorpius.yml')
-    llm = LargeLanguageModel(**model_config)
-
-    tb_name, desc = llm_retriever(
-        llm,
-        'How many unique debtors are there?',
-        'troin_test'
-    )
-
-    print(tb_name)
-    print(desc)
+    print(sentence_transformer_retriever('What is the total delivery order?', 'de_carton'))

@@ -2,7 +2,8 @@ from utils.llm import LargeLanguageModelAgent
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
 from utils.common import tokenize, ENV, read_yaml
-from utils.collection_retriever import llm_retriever
+from utils.collection_retriever import sentence_transformer_retriever
+from utils.prompt_retriever import  prompt_example_sentence_transformer_retriever
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
@@ -57,11 +58,12 @@ async def root():
         version = f.read()
 
     model_config['API_version'] = version 
+    model_config['env'] = ENV
 
     return JSONResponse(content=model_config)
 
 @app.post('/chat')
-async def chatmsg(msg: str, database_name: str, collection: str = None):
+async def chatmsg(msg: str, database_name: str, collection: str = None, note: str = None):
     # database_name = company name
     try:
         llm_agent.llm.load_prefix_suffix(prefix, suffix)
@@ -69,9 +71,12 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
         # retrieve collection
         start = time.time()
         if collection is None:
-            collection, table_desc = llm_retriever(llm_agent.llm, msg, database_name)
+            collection, table_desc, desc_cos_sim = sentence_transformer_retriever(msg, database_name)
         else:
             table_desc = mongo.get_table_desc(database_name, collection)
+            desc_cos_sim = -1
+
+        prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(msg, database_name)
         end = time.time()
         time_collection_retrieval = end - start
 
@@ -81,12 +86,12 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
 
         now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
         date_time = now.strftime('%d %B %Y, %H:%M')
-        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc)
+        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc, prompt_example)
 
         # capture terminal outputs to log llm output
         rp.start()
         start = time.time()
-        result = dataframe_agent({'input': msg, 'date_time': date_time})
+        result = dataframe_agent({'input': msg, 'date_time': date_time, 'prompt_example': prompt_example})
         output_log = rp.get_output().split('Prompt after formatting:')[-1]
         end = time.time()
         rp.stop()
@@ -106,6 +111,9 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'collection_retrieval_time': time_collection_retrieval,
             'collection': collection,
             'database_name': database_name,
+            'desc_cos_sim': desc_cos_sim,
+            'note': note,
+            'query_retrieval': question_retrieval,
             'success': success
         }
 
@@ -126,6 +134,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None):
             'datetime': datetime.datetime.now(pytz.timezone('Asia/Singapore')),
             'query': msg,
             'error': traceback.format_exc(),
+            'note': note,
             'success': False
         }
 
