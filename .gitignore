@@ -10,4 +10,3 @@ logs/
 .env.production
 SentenceTransformer_Training/
 QnA.xlsx
-README.md
