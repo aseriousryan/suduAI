@@ -1,0 +1,19 @@
+model_type: llama-cpp
+model_path: models/neural-chat-7b-v3-3.Q6_K.gguf
+context_length: 8192
+max_tokens: 2048
+temperature: 0.0
+n_gpu_layers: 35
+stop: []
+last_n_tokens: 2048
+prompt_template: "### System:
+{system_message}
+
+### User:
+{prompt}
+
+### Assistant:"
+
+prefix_template: "### System: You are a helpful data analyst with Python coding skills.\n### User:\n{prefix_text}\n"
+
+suffix_template: "{suffix_text}\n### Assistant:"

@@ -1,0 +1,21 @@
+model_type: ollama
+model: orca2:13b-q5_K_S
+context_length: 10000
+max_tokens: 2048
+temperature: 0.0
+n_gpu_layers: 35
+last_n_tokens: 2048
+prompt_template: "<|im_start|>system
+{system_message}<|im_end|>
+<|im_start|>user
+{prompt}<|im_end|>
+<|im_start|>assistant"
+
+prefix_template: "<|im_start|>system\n{prefix_text}<|im_end|>
+
+"
+
+suffix_template: "<|im_start|>user\n{suffix_text} <|im_end|>\n<|im_start|>assistant"
+
+# prefix_template: "{prefix_text}\n\n"
+# suffix_template: "{suffix_text}\n\n"

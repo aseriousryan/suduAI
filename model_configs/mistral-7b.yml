@@ -1,0 +1,12 @@
+model_type: llama-cpp
+model_path: models/mistral-7b-instruct-v0.2.Q5_K_M.gguf
+context_length: 8192
+max_tokens: 4096
+temperature: 0.0
+n_gpu_layers: 50
+stop: ['</s>']
+last_n_tokens: 2048
+top_p: 0.7
+prompt_template: "<s>[INST] {system_message} {prompt} [/INST]"
+prefix_template: "<s>[INST] You are a helpful data analyst that follows the instructions of your user strictly. [/INST]\n[INST]{prefix_text}\n"
+suffix_template: "{suffix_text}[/INST]"

@@ -1,0 +1,11 @@
+model_type: llama-cpp
+model_path: models/codellama-13b-instruct.Q8_0.gguf
+context_length: 4096
+max_tokens: 4096
+temperature: 0.0
+n_gpu_layers: 30
+stop: ['</s>']
+last_n_tokens: 2048
+prompt_template: "[INST] {system_message} {prompt} [/INST]"
+prefix_template: "[INST] {prefix_text}\n\n"
+suffix_template: " {suffix_text}\n\n[/INST]"
