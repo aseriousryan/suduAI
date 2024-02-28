@@ -26,7 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print(os.environ['mongodb_url'])
 mongo = MongoDBController(
     host=os.environ['mongodb_url'],
     port=int(os.environ['mongodb_port']), 
