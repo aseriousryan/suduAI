@@ -4,6 +4,7 @@ from utils.redirect_print import RedirectPrint
 from utils.common import tokenize, ENV, read_yaml
 from utils.collection_retriever import sentence_transformer_retriever
 from utils.prompt_retriever import  prompt_example_sentence_transformer_retriever
+from utils.row_retriever import  top5_row_for_question
 from langchain.globals import set_verbose
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
@@ -84,14 +85,17 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         if data.shape[0] == 0:
             raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
 
+        # Row Embedding
+        top5_results = str(top5_row_for_question(msg, data).to_markdown())
+        
         now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
         date_time = now.strftime('%d %B %Y, %H:%M')
-        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc, prompt_example)
+        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc, prompt_example, top5_results)
 
         # capture terminal outputs to log llm output
         rp.start()
         start = time.time()
-        result = dataframe_agent({'input': msg, 'date_time': date_time, 'prompt_example': prompt_example})
+        result = dataframe_agent({'input': msg, 'date_time': date_time, 'prompt_example': prompt_example, 'df_head': top5_results})
         output_log = rp.get_output().split('Prompt after formatting:')[-1]
         end = time.time()
         rp.stop()
