@@ -2,7 +2,7 @@ from utils.mongoDB import MongoDBController
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from preprocessors import cv_de_carton, troin, table_descriptor
+from preprocessors import cv_de_carton, troin, table_descriptor, row_descriptor
 from dotenv import load_dotenv
 import json
 from bson import json_util
@@ -33,6 +33,7 @@ mongo = MongoDBController(
     username=os.environ['mongodb_user'], 
     password=os.environ['mongodb_password']
 )
+print(os.environ['mongodb_url'])
 
 @app.get('/')
 async def root():
@@ -77,6 +78,9 @@ def upload(
             df = pd.read_csv(file.filename)
 
         df = convert_to_date(df)
+
+        # Compute and add row embeddings
+        df['row_embedding'] = df.apply(row_descriptor.compute_embedding, axis=1)
 
         inserted_ids = mongo.insert_unique_rows(df, uuid, collection_name)
 
