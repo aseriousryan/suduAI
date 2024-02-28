@@ -26,6 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print(os.environ['mongodb_url'])
 mongo = MongoDBController(
     host=os.environ['mongodb_url'],
     port=int(os.environ['mongodb_port']), 
@@ -76,25 +77,33 @@ def upload(
 
         df = convert_to_date(df)
 
-        data_dict = df.to_dict("records")
-        inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
+        inserted_ids = mongo.insert_unique_rows(df, uuid, collection_name)
+
+        # Convert inserted_ids to a JSON-compatible format
         inserted_ids = json.loads(json_util.dumps(inserted_ids))
         os.remove(file.filename)
 
-        # add table description to database
+       # add table description to database
         description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
         # the collection name in description database is the uuid
         mongo.create_collection(uuid)
-        table_desc_id = mongo.insert_one({
-            'collection': collection_name, 
-            'description': description_df,
-            'token_length': description_length,
-            'embedding': description_emb
-        })
-        table_desc_id = str(table_desc_id)
+
+        # Check if a document with the same collection name already exists in the database
+        existing_collection = mongo.get_table_desc_collection(uuid,collection_name)
+        if existing_collection is None:
+            table_desc_id = mongo.insert_one({
+                'collection': collection_name, 
+                'description': description_df,
+                'token_length': description_length,
+                'embedding': description_emb
+            })
+            table_desc_id = str(table_desc_id)
+        else:
+            table_desc_id = "Document with the same collection name already exists in the database."
 
         return JSONResponse(content={"insert_id": inserted_ids, "table_desc_id": table_desc_id})
+
 
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())

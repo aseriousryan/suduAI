@@ -34,7 +34,7 @@ class MongoDBController:
     def insert_one(self, data, db_name=None, collection_name=None):
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
-
+        
         response = self.collection.insert_one(data)
 
         return response.inserted_id
@@ -78,3 +78,40 @@ class MongoDBController:
             table_desc = f'The following is information about the table df:\n{table_desc}\n'
 
         return table_desc
+    
+
+    def get_table_desc_collection(self, database_name, collection):
+        # database name is the database name of where the table is stored, not the desc table database
+        # collection is the name of the collection that we want the description
+        df_desc = self.find_all(os.environ['mongodb_table_descriptor'], database_name)
+        df_collection_name = df_desc.loc[df_desc['collection'] == collection]
+        return df_collection_name
+    
+    def insert_unique_rows(self, df, db_name=None, collection_name=None):
+        if db_name: self.create_database(db_name)
+        if collection_name: self.create_collection(collection_name)
+
+        # Get existing data from the collection
+        existing_data = self.find_all(db_name, collection_name)
+
+        # Concatenate the new and existing data
+        combined_data = pd.concat([df, existing_data])
+
+        # Drop duplicates, keeping only the first occurrence
+        unique_data = combined_data.drop_duplicates(keep='first')
+
+        # Find the new rows to insert
+        new_rows = unique_data.loc[unique_data.index.difference(existing_data.index)]
+
+        if not new_rows.empty:
+            # Convert DataFrame to dictionary
+            new_rows_dict = new_rows.to_dict("records")
+
+            # Insert new records into the collection
+            response = self.collection.insert_many(new_rows_dict)
+            return response.inserted_ids
+        else:
+            print("No new records to insert.")
+            return []
+
+    
