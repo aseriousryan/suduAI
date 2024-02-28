@@ -14,6 +14,7 @@ import os
 import uvicorn
 import yaml
 import traceback
+import datetime
 
 load_dotenv(f'./.env.{ENV}')
 
@@ -51,7 +52,8 @@ def upload(
     uuid: str,
     collection_name: str,
     preprocess: bool = False,
-    desc: str = ''
+    desc: str = '',
+    retrieval_desc: str = None
 ):
     try:
         contents = file.file.read()
@@ -76,25 +78,35 @@ def upload(
 
         df = convert_to_date(df)
 
-        data_dict = df.to_dict("records")
-        inserted_ids = mongo.insert_many(data_dict, uuid, collection_name)
+        inserted_ids = mongo.insert_unique_rows(df, uuid, collection_name)
+
+        # Convert inserted_ids to a JSON-compatible format
         inserted_ids = json.loads(json_util.dumps(inserted_ids))
         os.remove(file.filename)
 
-        # add table description to database
-        description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc)
+       # add table description to database
+        description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc, retrieval_desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
         # the collection name in description database is the uuid
         mongo.create_collection(uuid)
-        table_desc_id = mongo.insert_one({
-            'collection': collection_name, 
-            'description': description_df,
-            'token_length': description_length,
-            'embedding': description_emb
-        })
-        table_desc_id = str(table_desc_id)
+
+        # Check if a document with the same collection name already exists in the database
+        existing_collection = mongo.get_table_desc_collection(uuid,collection_name)
+        if existing_collection is None:
+            table_desc_id = mongo.insert_one({
+                'collection': collection_name, 
+                'description': description_df,
+                'token_length': description_length,
+                'embedding': description_emb,
+                'retrieval_description': retrieval_desc if retrieval_desc is not None else description_df,
+                'datetime': datetime.datetime.now()
+            })
+            table_desc_id = str(table_desc_id)
+        else:
+            table_desc_id = "Document with the same collection name already exists in the database."
 
         return JSONResponse(content={"insert_id": inserted_ids, "table_desc_id": table_desc_id})
+
 
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())
