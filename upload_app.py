@@ -14,6 +14,7 @@ import os
 import uvicorn
 import yaml
 import traceback
+import datetime
 
 load_dotenv(f'./.env.{ENV}')
 
@@ -51,7 +52,8 @@ def upload(
     uuid: str,
     collection_name: str,
     preprocess: bool = False,
-    desc: str = ''
+    desc: str = '',
+    retrieval_desc: str = None
 ):
     try:
         contents = file.file.read()
@@ -83,7 +85,7 @@ def upload(
         os.remove(file.filename)
 
        # add table description to database
-        description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc)
+        description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc, retrieval_desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
         # the collection name in description database is the uuid
         mongo.create_collection(uuid)
@@ -95,7 +97,9 @@ def upload(
                 'collection': collection_name, 
                 'description': description_df,
                 'token_length': description_length,
-                'embedding': description_emb
+                'embedding': description_emb,
+                'retrieval_description': retrieval_desc if retrieval_desc is not None else description_df,
+                'datetime': datetime.datetime.now()
             })
             table_desc_id = str(table_desc_id)
         else:
