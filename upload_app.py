@@ -2,7 +2,7 @@ from utils.mongoDB import MongoDBController
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from preprocessors import cv_de_carton, troin, table_descriptor
+from preprocessors import cv_de_carton, troin, table_descriptor, row_descriptor
 from dotenv import load_dotenv
 import json
 from bson import json_util
@@ -33,6 +33,7 @@ mongo = MongoDBController(
     username=os.environ['mongodb_user'], 
     password=os.environ['mongodb_password']
 )
+print(os.environ['mongodb_url'])
 
 @app.get('/')
 async def root():
@@ -78,6 +79,9 @@ def upload(
 
         df = convert_to_date(df)
 
+        # Compute and add row embeddings
+        df['row_embedding'] = df.apply(row_descriptor.compute_embedding, axis=1)
+
         inserted_ids = mongo.insert_unique_rows(df, uuid, collection_name)
 
         # Convert inserted_ids to a JSON-compatible format
@@ -87,6 +91,7 @@ def upload(
        # add table description to database
         description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc, retrieval_desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
+        
         # the collection name in description database is the uuid
         mongo.create_collection(uuid)
 

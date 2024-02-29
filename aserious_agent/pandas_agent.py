@@ -75,6 +75,7 @@ def _get_multi_prompt(
 def _get_single_prompt(
     df: Any,
     table_desc: str = '',
+    df_head: str = '',
     prompt_example: str = '',
     prefix: Optional[str] = None,
     suffix: Optional[str] = None,
@@ -112,8 +113,9 @@ def _get_single_prompt(
     partial_prompt = prompt.partial()
     if "df_head" in input_variables:
         partial_prompt = partial_prompt.partial(
-            df_head=str(df.head(number_of_head_rows).to_markdown()),
+            #df_head=str(df.head(number_of_head_rows).to_markdown()),
             table_desc=table_desc,
+            df_head=df_head,
             prompt_example=prompt_example
         )
     return partial_prompt, tools
@@ -122,6 +124,7 @@ def _get_single_prompt(
 def _get_prompt_and_tools(
     df: Any,
     table_desc: str = '',
+    df_head: str='',
     prompt_example: str = '',
     prefix: Optional[str] = None,
     suffix: Optional[str] = None,
@@ -159,6 +162,7 @@ def _get_prompt_and_tools(
         return _get_single_prompt(
             df,
             table_desc,
+            df_head,
             prompt_example,
             prefix=prefix,
             suffix=suffix,
@@ -283,6 +287,7 @@ def create_pandas_dataframe_agent(
     llm: BaseLanguageModel,
     df: Any,
     table_desc: str = '',
+    df_head: str = '',
     prompt_example: str = '',
     agent_type: AgentType = AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     callback_manager: Optional[BaseCallbackManager] = None,
@@ -306,6 +311,7 @@ def create_pandas_dataframe_agent(
         prompt, base_tools = _get_prompt_and_tools(
             df,
             table_desc=table_desc,
+            df_head = df_head,
             prompt_example=prompt_example,
             prefix=prefix,
             suffix=suffix,

@@ -22,7 +22,13 @@ def get_table_description(df, desc='', retrieval_desc=None):
 
     categorical_desc = ''
     for col in categorical_columns:
+        
+        # Convert lists to tuples
+        df[col] = df[col].apply(lambda x: tuple(x) if isinstance(x, list) else x)
+        
+        # Get unique values
         unique_values = df[col].unique().tolist()
+
         token_length = [len(tokenize(os.environ['tokenizer'], str(value))) for value in unique_values]
         
         # if sum of token length is more than 200, don't include column into description

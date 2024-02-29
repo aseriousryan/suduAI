@@ -97,6 +97,12 @@ class MongoDBController:
         # Concatenate the new and existing data
         combined_data = pd.concat([df, existing_data])
 
+        # Convert lists in DataFrame to tuples before dropping duplicates
+        combined_data['row_embedding'] = combined_data['row_embedding'].apply(lambda x: tuple(x) if isinstance(x, list) else x)
+    
+        # Drop duplicates
+        unique_data = combined_data.drop_duplicates(keep='first')
+        
         # Drop duplicates, keeping only the first occurrence
         unique_data = combined_data.drop_duplicates(keep='first')
 
