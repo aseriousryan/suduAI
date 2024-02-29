@@ -7,7 +7,7 @@ from utils.common import ENV
 load_dotenv(f'./.env.{ENV}')
 
 # Initialize the BGEM3FlagModel
-model = BGEM3FlagModel('BAAI/bge-m3', use_fp16=True)
+model = BGEM3FlagModel(os.environ['row_embedding_model'], use_fp16=True)
 
 def compute_embedding(df):
 

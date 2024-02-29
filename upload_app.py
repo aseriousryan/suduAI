@@ -91,6 +91,7 @@ def upload(
        # add table description to database
         description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc, retrieval_desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
+        
         # the collection name in description database is the uuid
         mongo.create_collection(uuid)
 

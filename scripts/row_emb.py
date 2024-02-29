@@ -7,7 +7,7 @@ from utils.mongoDB import MongoDBController
 from dotenv import load_dotenv
 
 
-load_dotenv('/home/seriousco/Documents/jiaxin/suduAI-1/.env.development')
+load_dotenv('/home/seriousco/Documents/jiaxin/suduAI-1/.env.production')
 
 mongo = MongoDBController(
     host=os.environ['mongodb_url'],
@@ -17,7 +17,7 @@ mongo = MongoDBController(
 )
 print(os.environ['mongodb_url'])
 
-model = BGEM3FlagModel('BAAI/bge-m3', use_fp16=True)
+model = BGEM3FlagModel("/home/seriousco/Documents/jiaxin/suduAI-1/models/bge-m3", use_fp16=True)
 
 def compute_embedding(row):
     # Exclude '_id' from the row
@@ -38,11 +38,12 @@ def compute_embedding(row):
 
 db = "de_carton" # Change the DB name
 
-collection= "purchase_order_listing" # Change the collection name
+collection= "supplier_aging_report" # Change the collection name
 
 rows = mongo.find_all(db, collection)
 
 for idx, row in rows.iterrows():
+
     row_dict = row.to_dict() # convert to dictionary
 
     row_id = row_dict.pop('_id', None)  # Extract and remove the '_id' field
