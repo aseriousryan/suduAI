@@ -110,6 +110,10 @@ class MongoDBController:
         new_rows = unique_data.loc[unique_data.index.difference(existing_data.index)]
 
         if not new_rows.empty:
+            # Remove the _id field from DataFrame
+            if '_id' in new_rows.columns:
+                new_rows = new_rows.drop('_id', axis=1)
+
             # Convert DataFrame to dictionary
             new_rows_dict = new_rows.to_dict("records")
 
