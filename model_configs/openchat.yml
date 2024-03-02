@@ -7,6 +7,4 @@ top_p: 0.9
 n_gpu_layers: 50
 stop: ['</s>']
 last_n_tokens: 2048
-prompt_template: "GPT4 Correct User: {system_message} {prompt}<|end_of_turn|>GPT4 Correct Assistant:"
-prefix_template: "GPT4 Correct User: You are a helpful data analyst that follows the instructions of your user strictly.\n{prefix_text}\n"
-suffix_template: "{suffix_text}<|end_of_turn|>GPT4 Correct Assistant:"
+prompt_template: "GPT4 Correct User: {system_message} {user_message} <|end_of_turn|>GPT4 Correct Assistant:"

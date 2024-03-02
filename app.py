@@ -1,20 +1,22 @@
-from utils.llm import LargeLanguageModelAgent
+from utils.llm import LargeLanguageModel
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
-from utils.common import tokenize, ENV, read_yaml
+from utils.common import tokenize, ENV, read_yaml, parse_langchain_debug_log
 from utils.collection_retriever import sentence_transformer_retriever
-from utils.prompt_retriever import  prompt_example_sentence_transformer_retriever
-from utils.row_retriever import  top5_row_for_question
-from langchain.globals import set_verbose
+from utils.prompt_retriever import prompt_example_sentence_transformer_retriever
+from utils.row_retriever import top5_row_for_question
+from langchain.globals import set_debug
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from aserious_agent.pandas_agent import PandasAgent
 
 import pandas as pd
 
 import time
 import os
+import re
 import uvicorn
 import yaml
 import pytz
@@ -23,7 +25,7 @@ import traceback
 
 load_dotenv(f'./.env.{ENV}')
 
-set_verbose(True)
+set_debug(True)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -34,21 +36,13 @@ app.add_middleware(
 )
 rp = RedirectPrint() 
 
-llm_agent = LargeLanguageModelAgent(os.environ['model'])
+llm = LargeLanguageModel(**read_yaml(os.environ['model']))
 mongo = MongoDBController(
     host=os.environ['mongodb_url'],
     port=int(os.environ['mongodb_port']), 
     username=os.environ['mongodb_user'], 
     password=os.environ['mongodb_password']
 )
-
-# Load YAML files using paths from environment variables
-prompt = os.environ.get('prompt')
-prompt_template = read_yaml(prompt)
-
-# Accessing prefix and suffix
-prefix = prompt_template['prefix']
-suffix = prompt_template['suffix']
 
 @app.get('/')
 async def root():
@@ -67,7 +61,7 @@ async def root():
 async def chatmsg(msg: str, database_name: str, collection: str = None, note: str = None):
     # database_name = company name
     try:
-        llm_agent.llm.load_prefix_suffix(prefix, suffix)
+        now = datetime.datetime.now()
 
         # retrieve collection
         start = time.time()
@@ -88,19 +82,21 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         # Row Embedding
         top5_results = str(top5_row_for_question(msg, data).to_markdown())
         
-        now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
-        date_time = now.strftime('%d %B %Y, %H:%M')
-        dataframe_agent = llm_agent.create_dataframe_agent(data, table_desc, prompt_example, top5_results)
+        agent = PandasAgent(llm, data).create_agent(
+            prompt_example=prompt_example,
+            table_desc=table_desc,
+            df_head=top5_results
+        )
 
         # capture terminal outputs to log llm output
         rp.start()
         start = time.time()
-        result = dataframe_agent({'input': msg, 'date_time': date_time, 'prompt_example': prompt_example, 'df_head': top5_results})
-        output_log = rp.get_output().split('Prompt after formatting:')[-1]
+        result = agent.invoke({'input': msg})
+        debug_log = parse_langchain_debug_log(rp.get_output())
         end = time.time()
         rp.stop()
-
-        n_token_output = len(tokenize(os.environ['tokenizer'], output_log))
+        
+        n_token_output = len(tokenize(os.environ['tokenizer'], debug_log))
 
         error_message = "Agent stopped due to iteration limit or time limit"
 
@@ -109,7 +105,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
             'datetime': now,
             'query': msg,
             'output': result.get('output'),
-            'logs': output_log,
+            'logs': debug_log,
             'n_token_output': n_token_output,
             'response_time': end - start,
             'collection_retrieval_time': time_collection_retrieval,
@@ -143,7 +139,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         }
 
         if 'output_log' in globals():
-            data['logs'] = output_log
+            data['logs'] = debug_log
 
         id = mongo.insert_one(
             data=data,
