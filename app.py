@@ -82,11 +82,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         # Row Embedding
         top5_results = str(top5_row_for_question(msg, data).to_markdown())
         
-        agent = PandasAgent(llm, data).create_agent(
-            prompt_example=prompt_example,
-            table_desc=table_desc,
-            df_head=top5_results
-        )
+        agent = PandasAgent(llm, data, prompt_example, table_desc, top5_results).create_agent()
 
         # capture terminal outputs to log llm output
         rp.start()

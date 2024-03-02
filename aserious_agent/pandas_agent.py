@@ -29,7 +29,15 @@ import pandas as pd
 import os
 
 class PandasAgent:
-    def __init__(self, llm: LargeLanguageModel, df: pd.DataFrame, max_iterations: int = 7):
+    def __init__(
+        self,
+        llm: LargeLanguageModel, 
+        df: pd.DataFrame,
+        prompt_example: str,
+        table_desc: str,
+        df_head: str,
+        max_iterations: int = 7,
+    ):
         self.tools = [PythonAstREPLTool(locals={'df': df})]
         self.llm = llm
         self.max_iterations = max_iterations
@@ -37,14 +45,9 @@ class PandasAgent:
         # construct prompt
         self.system_prompt = read_yaml(os.environ.get('prompt'))['prompt']
         self.prompt_constructor = PandasPromptConstructor(llm, self.system_prompt)
-    
-    def create_agent(
-        self, 
-        prompt_example: str, 
-        table_desc: str, 
-        df_head: str
-    ):
         self.prompt = self.prompt_constructor.get_prompt(prompt_example, table_desc, df_head)
+    
+    def create_agent(self):
         self.agent: Union[BaseSingleActionAgent, BaseMultiActionAgent] = RunnableAgent(
             runnable=create_react_agent(self.llm.llm, self.tools, self.prompt),
             input_keys_arg=["input"],
