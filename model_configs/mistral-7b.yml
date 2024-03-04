@@ -7,6 +7,4 @@ n_gpu_layers: 50
 stop: ['</s>']
 last_n_tokens: 2048
 top_p: 0.7
-prompt_template: "<s>[INST] {system_message} {prompt} [/INST]"
-prefix_template: "<s>[INST] You are a helpful data analyst that follows the instructions of your user strictly. [/INST]\n[INST]{prefix_text}\n"
-suffix_template: "{suffix_text}[/INST]"
+prompt_template: "<s>[INST] {system_message} {user_message} [/INST]"

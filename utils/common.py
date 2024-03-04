@@ -1,9 +1,13 @@
 import yaml
 import os
+import re
+import json
 
 import sentencepiece as spm
 
 import pandas as pd
+
+from pydantic import BaseModel
 
 ENV = os.environ['SUDUAI_ENV']
 
@@ -47,3 +51,23 @@ def convert_to_date(df, date_pattern=None):
     
     return df.drop(columns=date_columns)
 
+def parse_langchain_debug_log(debug_log):
+    try:
+        pattern = r'Entering LLM run with input:\n\[0m(.*?){(.*?)}(.*?)\[36;1m\[1;3m\[llm/end\]'
+        matches = re.findall(pattern, debug_log, re.DOTALL)
+        pre_log = json.loads('{' + matches[-1][1] + '}')['prompts'][0]
+        print(pre_log)
+
+        # final answer
+        pattern = r'ReActSingleInputOutputParser] Entering Parser run with input:\n\[0m(.*?){(.*?)}(.*?)\[36;1m\[1;3m\[chain/end\]'
+        matches = re.findall(pattern, debug_log, re.DOTALL)
+        post_log = json.loads('{' + matches[-1][1] + '}')['input']
+        final_log = pre_log + post_log
+    except:
+        final_log = debug_log
+
+    return final_log
+
+class LogData(BaseModel):
+    class Config:
+        extra = 'allow'
