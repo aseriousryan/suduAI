@@ -42,7 +42,7 @@ class SQLQueryTool(BaseTool):
 
 if __name__ == "__main__":
     tool = SQLQueryTool()
-    tool_input = SQLQueryInput(query="SELECT * FROM delivery_order_listing LIMIT 5;")
+    tool_input = SQLQueryInput(query="SELECT * FROM customer_aging_report LIMIT 5;")
     results = tool.run(tool_input=tool_input)  
     print("Query Results:")
     for row in results:
