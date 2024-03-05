@@ -24,10 +24,9 @@ model = BGEM3FlagModel(os.environ['row_embedding_model'], use_fp16=True)
 
 def top5_row_for_question(question, data_frame):
 
-    print(os.environ['row_embedding_model'])
     # Encode the user question
     question_emb = model.encode([question], return_dense=True)['dense_vecs'][0]
-    print(question_emb)
+
     similarity_scores = []
 
     for idx, doc in data_frame.iterrows():
