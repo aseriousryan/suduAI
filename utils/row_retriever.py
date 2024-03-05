@@ -23,6 +23,7 @@ print(os.environ['mongodb_url'])
 model = BGEM3FlagModel(os.environ['row_embedding_model'], use_fp16=True)
 
 def top5_row_for_question(question, data_frame):
+
     # Encode the user question
     question_emb = model.encode([question], return_dense=True)['dense_vecs'][0]
 
@@ -39,7 +40,7 @@ def top5_row_for_question(question, data_frame):
     # Sort dataframe by similarity score in descending order and reset index
     data_frame_sorted = data_frame.sort_values(by='similarity_score', ascending=False).reset_index(drop=True)
 
-    top_rows = data_frame_sorted.head(5).drop(columns=['row_embedding'], errors='ignore')
+    top_rows = data_frame_sorted.head(5).drop(columns=['row_embedding', 'similarity_score'], errors='ignore')
 
     return top_rows
 
