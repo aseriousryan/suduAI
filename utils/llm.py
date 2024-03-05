@@ -15,12 +15,13 @@ class LargeLanguageModelAgent:
 
         self.llm = LargeLanguageModel(**model_config)
 
-    def create_dataframe_agent(self, df, desc, prompt_example):
+    def create_dataframe_agent(self, df, desc, prompt_example, df_head):
         return create_pandas_dataframe_agent(
             self.llm.llm, 
             df,
             table_desc=desc,
             prompt_example=prompt_example,
+            df_head=df_head,
             verbose=True,
             prefix=self.llm.prefix,
             suffix=self.llm.suffix,

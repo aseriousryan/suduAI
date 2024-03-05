@@ -21,6 +21,7 @@ model_config = read_yaml(os.environ['model'])
 model = os.path.basename(model_config['model_path'])
 collection_retriever_st = os.path.basename(os.path.normpath(os.environ['collection_retriever_sentence_transformer']))
 prompt_example_st = os.path.basename(os.path.normpath(os.environ['prompt_example_retriever_sentence_transformer']))
+row_retriever_st = os.path.basename(os.path.normpath(os.environ['row_embedding_model']))
 tokenizer = os.path.basename(os.environ['tokenizer'])
 prompt = os.path.basename(os.environ['prompt'])
 
@@ -36,6 +37,9 @@ if not os.path.isdir(collection_retriever_st):
 if not os.path.isdir(prompt_example_st):
     print('[*] Copying prompt example retriever sentence transformer model to project root...')
     shutil.copytree(os.path.join(args.model_path, prompt_example_st), prompt_example_st)
+if not os.path.isdir(row_retriever_st):
+    print('[*] Copying bge-m3 model to project root...')
+    shutil.copytree(os.path.join(args.model_path, row_retriever_st), row_retriever_st)
 
 if 'chat' in args.build:
     if not os.path.exists(model):
@@ -45,6 +49,7 @@ if 'chat' in args.build:
         f'--build-arg MODEL={model} --build-arg TOKENIZER={tokenizer} ' \
         f'--build-arg PROMPT={prompt} --build-arg COLLECTION_RETRIEVER_ST={collection_retriever_st} ' \
         f'--build-arg PROMPT_EXAMPLE_ST={prompt_example_st} ' \
+        f'--build-arg ROW_RETRIEVER_ST={row_retriever_st} ' \
         f'--build-arg SUDUAI_ENV={args.env} ' \
         f'-t asai-sudu:{version} .'
     print(f'[*] Building chat app Docker image:\n{build_cmd}\n')
@@ -53,6 +58,7 @@ if 'chat' in args.build:
 if 'upload' in args.build:
     build_cmd = f'docker build -f Dockerfile_upload --no-cache ' \
         f'--build-arg TOKENIZER={tokenizer} --build-arg COLLECTION_RETRIEVER_ST={collection_retriever_st} ' \
+        f'--build-arg ROW_RETRIEVER_ST={row_retriever_st} ' \
         f'--build-arg SUDUAI_ENV={args.env} ' \
         f'-t asai-sudu:upload-{version} .'
     print(f'[*] Building upload app Docker image:\n{build_cmd}\n')

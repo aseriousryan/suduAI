@@ -29,3 +29,16 @@ $ python scripts/backup_mongodb.py --output tmp/ --env <production|development>
 $ python scripts/rank_llm_output.py --results tmp/results.csv --output tmp/ranked.csv
 ```
 Please note that `results.csv` must have the following 3 columns: question, ground_truth and llm_output
+
+## Automation in question generation
+```
+$ python question_scripts/script1.py 
+```
+script1 is for running through an excel sheet with questions for LLM answer.
+
+## Uploading the Prompt Example
+Prompt example have 3 columns: question, log, collection_name
+```
+$ unicorn prompt_example_upload:app --port 8085
+```
+After running the port, go to port on web browser to upload the prompt example excel file in the database.
