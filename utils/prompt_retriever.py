@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 import numpy as np
 import os
+from FlagEmbedding import BGEM3FlagModel
 
 load_dotenv(f'./.env.{ENV}')
 
@@ -19,11 +20,11 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
-model = SentenceTransformer(os.environ['prompt_example_retriever_sentence_transformer'], device='cuda')
+model = BGEM3FlagModel(os.environ['prompt_example_retriever_sentence_transformer'],  use_fp16=True)
 def prompt_example_sentence_transformer_retriever(query, database_name):
     example_desc = mongo.find_all(os.environ['mongodb_prompt_example_descriptor'], database_name)
-    query_emb = model.encode(query, convert_to_numpy=True).reshape(1, -1)
-
+    # query_emb = model.encode(query, convert_to_numpy=True).reshape(1, -1)
+    query_emb =  model.encode([query], return_dense=True)['dense_vecs'][0].reshape(1, -1)
     desc_emb = np.stack(example_desc['question_embedding'].values)
     cos_sims = cosine_similarity(query_emb, desc_emb)[0]
     chosen = np.argmax(cos_sims)
@@ -33,5 +34,5 @@ def prompt_example_sentence_transformer_retriever(query, database_name):
     return prompt_example, question_retrieval
 
 
-if __name__ == '__main__':
+if __name__ == '_main_':
     print(prompt_example_sentence_transformer_retriever('What is the total delivery order?', 'de_carton'))
