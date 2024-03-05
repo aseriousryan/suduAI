@@ -23,7 +23,6 @@ mongo = MongoDBController(
 model = BGEM3FlagModel(os.environ['prompt_example_retriever_sentence_transformer'],  use_fp16=True)
 def prompt_example_sentence_transformer_retriever(query, database_name):
     example_desc = mongo.find_all(os.environ['mongodb_prompt_example_descriptor'], database_name)
-    # query_emb = model.encode(query, convert_to_numpy=True).reshape(1, -1)
     query_emb =  model.encode([query], return_dense=True)['dense_vecs'][0].reshape(1, -1)
     desc_emb = np.stack(example_desc['question_embedding'].values)
     cos_sims = cosine_similarity(query_emb, desc_emb)[0]
