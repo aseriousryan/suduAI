@@ -20,8 +20,11 @@ load_dotenv(f'./.env.{args.env}')
 model_config = read_yaml(os.environ['model'])
 model = os.path.basename(model_config['model_path'])
 collection_retriever_st = os.path.basename(os.path.normpath(os.environ['collection_retriever_sentence_transformer']))
+print(collection_retriever_st)
 prompt_example_st = os.path.basename(os.path.normpath(os.environ['prompt_example_retriever_sentence_transformer']))
+print(prompt_example_st)
 row_retriever_st = os.path.basename(os.path.normpath(os.environ['row_embedding_model']))
+print(row_retriever_st)
 tokenizer = os.path.basename(os.environ['tokenizer'])
 prompt = os.path.basename(os.environ['prompt'])
 
@@ -69,4 +72,5 @@ if 'chat' in args.build:
     os.remove(model)
 os.remove(tokenizer)
 shutil.rmtree(collection_retriever_st)
-
+shutil.rmtree(prompt_example_st)
+shutil.rmtree(row_retriever_st)

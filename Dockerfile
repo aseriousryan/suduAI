@@ -6,6 +6,7 @@ ARG PROMPT
 ARG SUDUAI_ENV
 ARG COLLECTION_RETRIEVER_ST
 ARG PROMPT_EXAMPLE_ST
+ARG ROW_RETRIEVER_ST
 
 RUN apt-get update && apt-get -y install python3 python3-pip pkg-config python3-dev git htop build-essential nvidia-cuda-toolkit
 

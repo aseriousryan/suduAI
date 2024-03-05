@@ -84,6 +84,8 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
             'note': note,
             'success': success
         })
+        
+        print("output log : ", output_log)
 
         id = mongo.insert_one(
             data=data,
