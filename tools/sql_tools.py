@@ -29,6 +29,7 @@ class SQLQueryTool(BaseTool):
         query = tool_input.query  
         
         with engine.connect() as connection:
+            # Execution of query
             result = connection.execute(text(query))
             column_names = list(result.keys())
             results = result.fetchall()
