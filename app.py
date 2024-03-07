@@ -4,12 +4,17 @@ from utils.redirect_print import RedirectPrint
 from utils.common import (
     tokenize, ENV, read_yaml, parse_langchain_debug_log, LogData
 )
+
 from langchain.globals import set_debug
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from aserious_agent.pandas_agent import PandasAgent
+
+from aserious_agent.sql_agent import SQLAgent
+from tools.sql_database_toolkit import DatabaseConnection
+from langchain.sql_database import SQLDatabase
 
 import os
 import uvicorn
@@ -41,6 +46,21 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
+
+db_user = os.getenv('db_user')
+db_password = os.getenv('db_password')
+db_host = os.getenv('db_host')
+db_name = os.getenv('db_name')
+db_port = int(os.getenv('db_port'))
+
+db_connection = DatabaseConnection(db_user, db_password, db_host, db_name, db_port)
+
+engine = db_connection.get_engine()
+
+sql_db = SQLDatabase(engine)
+
+agent_type = os.getenv('agent_type')
+
 @app.get('/')
 async def root():
     with open(os.environ['model'], 'r') as f: 
@@ -59,7 +79,11 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
     # database_name = company name
     try:
         now = datetime.datetime.now()
-        agent = PandasAgent(llm, mongo, data_logger)
+
+        if(agent_type=="sql_agent"):
+            agent = SQLAgent(llm, data_logger, mongo, sql_db)
+        else:
+            agent = PandasAgent(llm, mongo, data_logger)
 
         # capture terminal outputs to log llm output
         rp.start()
