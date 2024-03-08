@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 import pandas as pd
 import os
+from bson.json_util import dumps
+from preprocessors import row_descriptor
 
 class MongoDBController:
     def __init__(self, host, port, username, password, db_name=None):
@@ -79,49 +81,89 @@ class MongoDBController:
 
         return table_desc
     
-
     def get_table_desc_collection(self, database_name, collection):
         # database name is the database name of where the table is stored, not the desc table database
         # collection is the name of the collection that we want the description
         df_desc = self.find_all(os.environ['mongodb_table_descriptor'], database_name)
         df_collection_name = df_desc.loc[df_desc['collection'] == collection]
         return df_collection_name
-    
-    def insert_unique_rows(self, df, db_name=None, collection_name=None):
-        if db_name: self.create_database(db_name)
-        if collection_name: self.create_collection(collection_name)
 
-        # Get existing data from the collection
+    def get_collection_data_types(self, db_name, collection_name):
+        existing_data = self.find_all(db_name, collection_name)
+        existing_data = existing_data.drop(columns=['_id'], errors='ignore')
+        data_types = existing_data.dtypes.to_dict()
+        return data_types
+
+    def validate_data_types(self, df, db_name, collection_name):
+        # Get the data type schema of the MongoDB collection
+        collection_data_types = self.get_collection_data_types(db_name, collection_name)
+
+        for col, expected_dtype in collection_data_types.items():
+            if col in df.columns:
+                try:
+                    if expected_dtype in [int, float] and df[col].dtype == object:
+                        df[col] = pd.to_numeric(df[col].str.replace(',', ''), errors='raise')
+
+                    df[col] = df[col].astype(expected_dtype)
+
+                except (ValueError, pd.errors.OutOfBoundsDatetime) as e:
+                    raise ValueError(f"Data type mismatch for column '{col}': {e}")
+
+    def insert_unique_rows(self, df, db_name=None, collection_name=None):
+        if db_name:
+            self.create_database(db_name)
+        if collection_name:
+            self.create_collection(collection_name)
+
+        self.validate_data_types(df, db_name, collection_name)
+
         existing_data = self.find_all(db_name, collection_name)
 
-        # Concatenate the new and existing data
-        combined_data = pd.concat([df, existing_data])
-
-        # Convert lists in DataFrame to tuples before dropping duplicates
-        combined_data['row_embedding'] = combined_data['row_embedding'].apply(lambda x: tuple(x) if isinstance(x, list) else x)
-    
-        # Drop duplicates
-        unique_data = combined_data.drop_duplicates(keep='first')
-        
-        # Drop duplicates, keeping only the first occurrence
-        unique_data = combined_data.drop_duplicates(keep='first')
-
-        # Find the new rows to insert
-        new_rows = unique_data.loc[unique_data.index.difference(existing_data.index)]
-
-        if not new_rows.empty:
-            # Remove the _id field from DataFrame
-            if '_id' in new_rows.columns:
-                new_rows = new_rows.drop('_id', axis=1)
-
-            # Convert DataFrame to dictionary
-            new_rows_dict = new_rows.to_dict("records")
-
-            # Insert new records into the collection
-            response = self.collection.insert_many(new_rows_dict)
-            return response.inserted_ids
-        else:
-            print("No new records to insert.")
+        if df.empty:
+            print("Error: The DataFrame is empty. No rows to insert.")
             return []
 
-    
+        is_collection_empty = existing_data.empty
+
+        if is_collection_empty:
+            try:
+                df['row_embedding'] = df.apply(row_descriptor.compute_embedding, axis=1)
+                return self.insert_many(df.to_dict(orient='records'), db_name, collection_name)
+            except Exception as e:
+                print(f"Error during MongoDB insertion: {e}")
+                return []
+
+        new_data_to_insert = self.filter_duplicate_rows(df, existing_data)
+
+        # Check if there are new rows to insert
+        if not new_data_to_insert.empty:
+            try:
+                new_data_to_insert['row_embedding'] = new_data_to_insert.apply(row_descriptor.compute_embedding, axis=1)
+                result = self.insert_many(new_data_to_insert.to_dict(orient='records'), db_name, collection_name)
+                return result
+            except Exception as e:
+                print(f"Error during MongoDB insertion: {e}")
+                return []
+
+        print("No new rows to insert. All data already exists in the collection.")
+        return []
+
+    def filter_duplicate_rows(self, new_df, existing_df):
+
+        existing_df_cleaned = existing_df.drop(['_id', 'row_embedding'], axis=1, errors='ignore')
+
+        merged_df = pd.merge(new_df, existing_df_cleaned, how='left', indicator=True)
+
+        filtered_df = merged_df[merged_df['_merge'] == 'left_only'].drop('_merge', axis=1)
+
+        return filtered_df
+
+
+
+
+
+
+
+
+
+       
