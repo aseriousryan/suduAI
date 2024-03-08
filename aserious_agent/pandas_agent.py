@@ -17,8 +17,7 @@ from langchain_core.utils.interactive_env import is_interactive_env
 from langchain_core.callbacks import BaseCallbackManager
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.tracers import ConsoleCallbackHandler
-
-from tools.human_input import create_human_input_tool
+from tools.human_input import HumanInputTool
 from langchain_experimental.tools.python.tool import PythonAstREPLTool
 
 from prompt_constructor.pandas import PandasPromptConstructor
@@ -78,10 +77,11 @@ class PandasAgent:
         retrieval_time = end - start
 
         detailed_description = "Some dynamic description based on the user_query and database information"
-
-        self.tools = [PythonAstREPLTool(locals={'df': df_data}), create_human_input_tool(user_query, detailed_description)]
+        
+        # The tools pass in different necessary data
         # self.tools = [PythonAstREPLTool(locals={'df': df_data})]
 
+        self.tools = [PythonAstREPLTool(locals={'df': df_data}), HumanInputTool()]
 
         self.prompt = self.prompt_constructor.get_prompt(prompt_example, table_desc, df_top5)
         self.create_agent()
@@ -111,7 +111,7 @@ class PandasAgent:
             agent=self.agent,
             tools=self.tools,
             callback_manager=CallbackManager([ConsoleCallbackHandler()]),
-            # verbose=False,
+            verbose=False,
             return_intermediate_steps=False,
             max_iterations=self.max_iterations,
             max_execution_time=600,

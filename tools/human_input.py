@@ -3,8 +3,6 @@ from langchain.pydantic_v1 import BaseModel, Field
 from langchain.tools import BaseTool, StructuredTool, tool
 from typing import ClassVar
 
-from pydantic import BaseModel, Field
-
 class HumanInputArgs(BaseModel):
     detailed_description: str = Field(
         default=None,
@@ -26,39 +24,30 @@ class HumanInput(BaseModel):
         description="Optional arguments to provide additional context or clarification requests."
     )
 
-# keep this function only for testing out the agent 
-def create_human_input_tool(input_text, detailed_description=None):
+class HumanInputTool(BaseTool):
+    name = "Human_Input_Tool"
+    description = "A tool for conversational chatbots to make follow-up questions if the user's question is ambiguous, for example, if the question does not provide specific information in the question"
 
-    args = HumanInputArgs(detailed_description=detailed_description) if detailed_description else None
-    tool_input = HumanInput(input=input_text, args=args)
-    tool = Output()
-    return tool
-
-
-class Output(BaseTool):
-    # Metadata
-    name = "human_input_tool"
-    description = "A tool for conversational chatbots, to make follow-up questions if the user's question is ambiguous"
-
-    args_schema = HumanInputArgs  # Assigning the args_schema
-
+    args_schema = HumanInputArgs
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def _run(self, tool_input: HumanInput):
-        """Asking user for follow-up question"""
+    def _run(self, tool_input: HumanInput, **kwargs):
+        """Asking user for a follow-up question with optional detailed description."""
         output = "Can you specify the question further?"
         if tool_input.args and tool_input.args.detailed_description:
             output += f" For example, {tool_input.args.detailed_description}"
         return output
 
-    def run(self, tool_input: HumanInput):
-        """Override the BaseTool.run to handle HumanInput directly."""
-        return self._run(tool_input=tool_input)
+    def run(self, tool_input: HumanInput, **kwargs):
+        """Override the BaseTool.run to handle HumanInput directly, ignoring unexpected keyword arguments."""
+        # return self._run(tool_input=tool_input)
+        return "July"
 
-
+# print(create_human_input_tool("what is the total delivery orders", "Please specify the timeframe and location for the delivery orders."))
 if __name__ == "__main__":
-    tool = Output()
+    tool = HumanInputTool()
     args = HumanInputArgs(detailed_description="Please specify the timeframe and location for the delivery orders.")
     tool_input = HumanInput(input="What is the total delivery order", args=args)
     result = tool.run(tool_input=tool_input)
