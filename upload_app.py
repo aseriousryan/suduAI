@@ -58,7 +58,7 @@ def upload(
 ):
     try:
         contents = file.file.read()
-        with open (file.filename, 'wb') as f:
+        with open(file.filename, 'wb') as f:
             f.write(contents)
 
         if file.filename.endswith('.xlsx'):
@@ -78,20 +78,17 @@ def upload(
             df = pd.read_csv(file.filename)
    
         df = convert_date_columns_to_sql_datetime(df)
-        # Compute and add row embeddings
-        df['row_embedding'] = df.apply(row_descriptor.compute_embedding, axis=1)
 
         inserted_ids = mongo.insert_unique_rows(df, uuid, collection_name)
 
-        # Convert inserted_ids to a JSON-compatible format
         inserted_ids = json.loads(json_util.dumps(inserted_ids))
+
+        # Remove the uploaded file
         os.remove(file.filename)
 
-       # add table description to database
         description_df, description_length, description_emb = table_descriptor.get_table_description(df, desc, retrieval_desc)
         mongo.create_database(os.environ['mongodb_table_descriptor'])
         
-        # the collection name in description database is the uuid
         mongo.create_collection(uuid)
 
         # Check if a document with the same collection name already exists in the database
@@ -141,7 +138,6 @@ def upload(
     except:
         raise HTTPException(status_code=404, detail=traceback.format_exc())
 
-    
 
 if __name__ == "__main__":
     uvicorn.run('upload_app:app', host="0.0.0.0", port=8082, reload=True)
