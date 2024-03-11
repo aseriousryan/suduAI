@@ -71,3 +71,58 @@ def parse_langchain_debug_log(debug_log):
 class LogData(BaseModel):
     class Config:
         extra = 'allow'
+
+
+def is_date_column(series):
+    # Check for common date formats
+    common_formats = [
+        '%Y-%m-%d', '%Y/%m/%d', '%Y%m%d',
+        '%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S', '%Y%m%d %H:%M:%S',
+        '%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y%m%d %H:%M',
+        '%d-%m-%Y', '%d/%m/%Y', '%d%m%Y',
+        '%d-%m-%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S', '%d%m%Y %H:%M:%S',
+        '%d-%m-%Y %H:%M', '%d/%m/%Y %H:%M', '%d%m%Y %H:%M'
+    ]
+    
+    for format_str in common_formats:
+        try:
+            pd.to_datetime(series, format=format_str, errors='raise')
+            return True
+        except (ValueError, pd.errors.ParserError):
+            pass
+
+    return False
+
+def convert_date_columns_to_sql_datetime(df):
+    for col in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[col]):
+            # If column is already datetime-like, do nothing
+            continue
+        elif pd.api.types.is_string_dtype(df[col]) and is_date_column(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col], errors='raise')
+                print(type(df[col]))
+            except (pd.errors.ParserError, pd.errors.OutOfBoundsDatetime):
+                # If parsing or out of bounds fails, continue checking other columns
+                continue
+
+    return df
+
+def generate_sql_table_schema_markdown(table_name, columns_str, data_types_str):
+    # Split the input strings into lists
+    columns = [col.strip() for col in columns_str.split(';')]
+    data_types = [dtype.strip() for dtype in data_types_str.split(';')]
+
+    # Check if the number of columns and data types match
+    if len(columns) != len(data_types):
+        raise ValueError("Number of columns and data types must be the same.")
+
+    # Create the SQL table schema markdown
+    table_schema_markdown = f"## Table name: {table_name}\n\n"
+    table_schema_markdown += "| Column Name | Data Type |\n"
+    table_schema_markdown += "|--------------|------------|\n"
+
+    for col, dtype in zip(columns, data_types):
+        table_schema_markdown += f"| {col} | {dtype} |\n"
+
+    return table_schema_markdown
