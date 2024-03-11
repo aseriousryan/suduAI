@@ -14,15 +14,15 @@ class SqlPromptConstructor(BasePromptConstructor):
         )
         self.partial_prompt = PromptTemplate.from_template(partial_prompt)
 
-    def get_prompt(self, prompt_example: str, table_desc: str, df_head: str):
+    def get_prompt(self, table_name: str, table_schema_markdown: str, retrieval_description: str):
         now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
         date_time = now.strftime('%d %B %Y, %H:%M')
         
         sql_prompt = self.partial_prompt.partial(
-            prompt_example=prompt_example,
-            table_desc=table_desc,
-            df_head=df_head,
-            date_time=date_time
+            table_name=table_name,
+            table_schema_markdown=table_schema_markdown,
+            retrieval_description=retrieval_description,
+            date_time=date_time,
         )
 
         return sql_prompt

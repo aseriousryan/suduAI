@@ -81,7 +81,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         now = datetime.datetime.now()
 
         if(agent_type=="sql_agent"):
-            agent = SQLAgent(llm, data_logger, mongo, sql_db)
+            agent = SQLAgent(llm, data_logger, mongo, engine)
         else:
             agent = PandasAgent(llm, mongo, data_logger)
 

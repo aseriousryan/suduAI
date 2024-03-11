@@ -84,9 +84,29 @@ class MongoDBController:
         # database name is the database name of where the table is stored, not the desc table database
         # collection is the name of the collection that we want the description
         df_desc = self.find_all(os.environ['mongodb_table_descriptor'], database_name)
-        df_collection_name = df_desc.loc[df_desc['collection'] == collection]
-        return df_collection_name
+
+        if not df_desc.empty:
+            df_collection_name = df_desc.loc[df_desc['collection'] == collection]
+            return df_collection_name
+        else:
+            print("No data found in the table description collection.")
+            return pd.DataFrame()
+
     
+    def get_table_schema_collection(self, database_name, collection):
+        # database name is the database name of where the table is stored, not the desc table database
+        # collection is the name of the collection that we want the description
+        df_schema = self.find_all(os.environ['mongodb_sql_table_schema'], database_name)
+
+        if not df_schema.empty:
+            df_table_name = df_schema.loc[df_schema['table_name'] == collection]
+            return df_table_name
+        else:
+            print("No data found in the table schema collection.")
+            return pd.DataFrame()
+
+            
+        
     def insert_unique_rows(self, df, db_name=None, collection_name=None):
         if db_name: self.create_database(db_name)
         if collection_name: self.create_collection(collection_name)
@@ -103,8 +123,6 @@ class MongoDBController:
         # Drop duplicates
         unique_data = combined_data.drop_duplicates(keep='first')
         
-        # Drop duplicates, keeping only the first occurrence
-        unique_data = combined_data.drop_duplicates(keep='first')
 
         # Find the new rows to insert
         new_rows = unique_data.loc[unique_data.index.difference(existing_data.index)]

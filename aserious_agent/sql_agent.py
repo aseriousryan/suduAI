@@ -17,12 +17,15 @@ from utils.common import read_yaml, LogData
 from utils.row_retriever import top5_row_for_question
 from prompt_constructor.sql import SqlPromptConstructor
 from tools.sql_database_toolkit import SQLDatabaseToolkit
+from tools.sql_tool import SQLQueryTool
 from langchain.sql_database import SQLDatabase
 import pandas as pd
 from utils.mongoDB import MongoDBController
 from utils.collection_retriever import sentence_transformer_retriever
 from utils.prompt_retriever import prompt_example_sentence_transformer_retriever
 from utils.row_retriever import top5_row_for_question
+from utils.table_retriever import table_schema_retriever
+from sqlalchemy.engine import Engine
 
 import time
 import os
@@ -33,14 +36,14 @@ class SQLAgent:
         llm: LargeLanguageModel,
         data_logger: LogData,
         mongo: MongoDBController,
-        db: SQLDatabase,
+        engine: Any,
         max_iterations: int = 8,
     ):
         
         self.llm = llm
         self.max_iterations = max_iterations
         self.data_logger = data_logger
-        self.db = db
+        self.engine = engine
         self.mongo = mongo
 
         # construct prompt
@@ -50,31 +53,16 @@ class SQLAgent:
     
     def run_agent(self, user_query: str,database_name: str, collection: str = None):
 
-        # retrieve collection
+        # retrieve table schema
         start = time.time()
-        if collection is None:
-            collection, table_desc, desc_cos_sim = sentence_transformer_retriever(user_query, database_name)
-        else:
-            table_desc = self.mongo.get_table_desc(database_name, collection)
-            desc_cos_sim = -1
 
-        df_data = self.mongo.find_all(database_name, collection, exclusion={'_id': 0})
-        if df_data.shape[0] == 0:
-            raise RuntimeError(f'No data found:\ndb: {database_name}\ncollection: {collection}')
-
-        # retrieve prompt example
-        prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(user_query, database_name)
-
-        # retrieve top 5 rows
-        df_top5 = str(top5_row_for_question(user_query, df_data).to_markdown())
-
+        table_name, table_schema_markdown, retrieval_description, desc_cos_sim  = table_schema_retriever(user_query, database_name)
+       
         end = time.time()
         retrieval_time = end - start
 
-        # toolkit = SQLDatabaseToolkit(llm=self.llm.llm, db=self.db).get_tools()
-
-        self.tools = []
-        self.prompt = self.prompt_constructor.get_prompt(prompt_example, table_desc, df_top5)
+        self.tools = [SQLQueryTool(self.engine)]
+        self.prompt = self.prompt_constructor.get_prompt(table_name, table_schema_markdown, retrieval_description)
         self.create_agent()
 
         start = time.time()
@@ -83,9 +71,7 @@ class SQLAgent:
         response_time = end - start
 
          # log data
-        self.data_logger.collection = collection
         self.data_logger.desc_cos_sim = desc_cos_sim
-        self.data_logger.query_retrieval = question_retrieval
         self.data_logger.collection_retrieval_time = retrieval_time
         self.data_logger.response_time = response_time
 
