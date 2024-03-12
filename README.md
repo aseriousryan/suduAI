@@ -39,6 +39,6 @@ script1 is for running through an excel sheet with questions for LLM answer.
 ## Uploading the Prompt Example
 Prompt example have 3 columns: question, log, collection_name
 ```
-$ unicorn prompt_example_upload:app --port 8085
+$ uvicorn prompt_example_upload:app --port 8085
 ```
 After running the port, go to port on web browser to upload the prompt example excel file in the database.

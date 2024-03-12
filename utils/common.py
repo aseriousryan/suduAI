@@ -51,7 +51,7 @@ def convert_to_date(df, date_pattern=None):
     
     return df.drop(columns=date_columns)
 
-def parse_langchain_debug_log(debug_log):
+def parse_langchain_debug_log(debug_log): #json
     try:
         pattern = r'Entering LLM run with input:\n\[0m(.*?){(.*?)}(.*?)\[36;1m\[1;3m\[llm/end\]'
         matches = re.findall(pattern, debug_log, re.DOTALL)
@@ -67,6 +67,26 @@ def parse_langchain_debug_log(debug_log):
         final_log = debug_log
 
     return final_log
+
+def extract_prompts(output): #for openchat only
+    # Preprocess to replace '\\n' with a real new line
+    output = output.replace("\\n", "\n")
+
+    # Define the regular expression pattern to match the last occurrence of "GPT4 Correct User:" and the subsequent text
+    user_pattern = re.compile(r"GPT4 Correct User:(.*?)(?=<|end_of_turn|>GPT4 Correct Assistant:|$)", re.DOTALL)
+    user_matches = re.findall(user_pattern, output)
+    last_user_details = user_matches[-1].strip() if user_matches else None
+
+    # Define the pattern to search for the last 'I now know the final answer.' and its remaining text until the sentence finishes
+    answer_pattern = re.compile(r'(I now know the final answer\..*?)(?=[.!?])', re.DOTALL)
+    answer_matches = re.findall(answer_pattern, output)
+    last_final_answer = answer_matches[-1].strip() if answer_matches else None
+
+    # Append the last 'I now know the final answer.' and its remaining text to the final string output
+    final_output = f"{last_user_details} {last_final_answer}" if last_user_details else None
+ 
+    return final_output
+
 
 class LogData(BaseModel):
     class Config:
@@ -123,6 +143,11 @@ def generate_sql_table_schema_markdown(table_name, columns_str, data_types_str):
     table_schema_markdown += "|--------------|------------|\n"
 
     for col, dtype in zip(columns, data_types):
-        table_schema_markdown += f"| {col} | {dtype} |\n"
+        # Add double quotes around the column name
+        col_with_quotes = f'"{col}"'
+        table_schema_markdown += f"| {col_with_quotes} | {dtype} |\n"
 
     return table_schema_markdown
+
+
+

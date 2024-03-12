@@ -2,7 +2,7 @@ from utils.llm import LargeLanguageModel
 from utils.mongoDB import MongoDBController
 from utils.redirect_print import RedirectPrint
 from utils.common import (
-    tokenize, ENV, read_yaml, parse_langchain_debug_log, LogData
+    tokenize, ENV, read_yaml, parse_langchain_debug_log, LogData, extract_prompts
 )
 
 from langchain.globals import set_debug
@@ -88,7 +88,7 @@ async def chatmsg(msg: str, database_name: str, collection: str = None, note: st
         # capture terminal outputs to log llm output
         rp.start()
         result = agent.run_agent(user_query=msg, database_name=database_name, collection=collection)
-        debug_log = parse_langchain_debug_log(rp.get_output())
+        debug_log = parse_langchain_debug_log(rp.get_output())  
         rp.stop()
         
         n_token_output = len(tokenize(os.environ['tokenizer'], debug_log))

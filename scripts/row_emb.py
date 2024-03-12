@@ -15,7 +15,6 @@ mongo = MongoDBController(
     username=os.environ['mongodb_user'], 
     password=os.environ['mongodb_password']
 )
-print(os.environ['mongodb_url'])
 
 model = BGEM3FlagModel("/home/seriousco/Documents/jiaxin/suduAI-1/models/bge-m3", use_fp16=True)
 
