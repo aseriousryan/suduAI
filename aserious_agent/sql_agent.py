@@ -56,7 +56,8 @@ class SQLAgent:
         # retrieve table schema
         start = time.time()
 
-        table_name, table_schema_markdown, retrieval_description, desc_cos_sim  = table_schema_retriever(user_query, database_name)
+        if collection is None:
+            table_name, table_schema_markdown, retrieval_description, desc_cos_sim  = table_schema_retriever(user_query, database_name)
        
         end = time.time()
         retrieval_time = end - start
@@ -70,9 +71,11 @@ class SQLAgent:
         end = time.time()
         response_time = end - start
 
-         # log data
+        # log data
+        self.data_logger.table = table_name
+        self.data_logger.retrieval_desc = retrieval_description
         self.data_logger.desc_cos_sim = desc_cos_sim
-        self.data_logger.collection_retrieval_time = retrieval_time
+        self.data_logger.table_retrieval_time = retrieval_time
         self.data_logger.response_time = response_time
 
         return result

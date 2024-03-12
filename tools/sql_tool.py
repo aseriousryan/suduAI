@@ -20,6 +20,7 @@ class SQLQueryTool(BaseTool):
     description: str = """
     A SQL shell. Use this to execute SQL query.
     Input should be a valid SQL query.
+    Enforce to use double quotes around the column names in SQL query code. For example, SELECT SUM("Amt with Tax") FROM delivery_delivery_order_listing WHERE "doc_date" BETWEEN CURRENT_DATE - INTERVAL '1 month' AND CURRENT_DATE; 
     When using this tool, sometimes output is abbreviated - make sure it does not look abbreviated before using it in your answer.
     """
 
@@ -38,10 +39,7 @@ class SQLQueryTool(BaseTool):
             raise ValueError("Unsupported input type. Use SQLQueryInput or str.")
 
         with self.engine.connect() as connection:
-            print("Query: ", query)
-            print()
             result = connection.execute(text(query))
-            print("Result: ", result)
             column_names = list(result.keys())
             results = result.fetchall()
             return [{column_names[i]: value for i, value in enumerate(row)} for row in results]
