@@ -2,8 +2,4 @@ model_type : openai
 
 gpt_type: gpt-4
 
-prompt_template: "{system_message}\n\n{prompt}"
-
-prefix_template: "{prefix_text}"
-
-suffix_template: "{suffix_text}"
+prompt_template: "{system_message}\n\n{user_message}"
