@@ -15,12 +15,13 @@ class DatabaseConnection:
 class SQLQueryInput(BaseModel):
     sql_query: str = Field(description="code snippet to run")
 
-class SQLQueryTool(BaseTool):
+class SQLQueryTool(BaseTool): 
     name: str = "sql_db_query"
     description: str = """
-    A SQL shell. Use this to execute SQL query.
-    Input should be a valid SQL query.
-    Enforce to use double quotes around the column names in SQL query code. For example, SELECT SUM("Amt with Tax") FROM delivery_delivery_order_listing WHERE "doc_date" BETWEEN CURRENT_DATE - INTERVAL '1 month' AND CURRENT_DATE; 
+    A SQL shell. Use this to execute SQL query
+    Input should be a valid SQL query. 
+    Enforce to use double quotes for column names and SQL alias in SQL query code. 
+    For example, SELECT MAX("Amount") AS "Highest Amount", "Name" FROM quotation_quotation_listing WHERE "doc_date" BETWEEN '2023-12-01' AND '2023-12-31' GROUP BY "Name" ORDER BY "Highest Amount" DESC LIMIT 1;
     When using this tool, sometimes output is abbreviated - make sure it does not look abbreviated before using it in your answer.
     """
 
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     sql_tool = SQLQueryTool(engine=db_connection.get_engine())
 
     # Test the SQLQueryTool with an example SQL query
-    example_query = "SELECT * FROM delivery_order_listing LIMIT 5;"
+    example_query = "SELECT * FROM customer_aging_report;"
     input_data = SQLQueryInput(sql_query=example_query)
 
     # Run the SQLQueryTool and print the result
