@@ -16,11 +16,14 @@ class SqlPromptConstructor(BasePromptConstructor):
 
     def get_prompt(self, table_name: str, table_schema_markdown: str, retrieval_description: str):
         
+        now = datetime.datetime.now(pytz.timezone('Asia/Singapore'))
+        date_now = now.strftime('%Y-%m-%d')
+
         sql_prompt = self.partial_prompt.partial(
             table_name=table_name,
             table_schema_markdown=table_schema_markdown,
             retrieval_description=retrieval_description,
-            date_now="2024-01-31"
+            date_now=date_now
         )
 
         return sql_prompt
