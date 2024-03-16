@@ -70,8 +70,6 @@ def parse_langchain_debug_log(debug_log): #json
 
 
 
-
-
 def extract_prompts(input_text):
     # Define the pattern to match all occurrences of the "prompts" array content
     prompts_pattern = re.compile(r'"prompts": \[([\s\S]*?)\]', re.DOTALL)
@@ -99,12 +97,12 @@ def extract_prompts(input_text):
             last_log = log_match[-1]
 
             # Append the last log to the extracted prompts
-            last_prompts += '\n' + last_log
+            last_prompts += ']\nThought: ' + last_log
 
         # Replace "\n" with actual newline character
         last_prompts = last_prompts.replace("\\n", "\n")
 
-        return last_prompts
+        return last_prompts  
 
     return "Prompts not found in the input text."
 
