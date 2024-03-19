@@ -19,9 +19,8 @@ class SQLQueryTool(BaseTool):
     name: str = "sql_db_query"
     description: str = """
     A SQL shell. Use this to execute SQL query
-    Input should be a valid SQL query. 
-    Enforce to use double quotes for column names and SQL alias in SQL query code. 
-    For example, SELECT MAX("Amount") AS "Highest Amount", "Name" FROM quotation_quotation_listing WHERE "doc_date" BETWEEN '2023-12-01' AND '2023-12-31' GROUP BY "Name" ORDER BY "Highest Amount" DESC LIMIT 1;
+    Input should be a valid SQL query with double quotes on all column names and alias names if any. 
+    Do not use triple backticks in SQL shell.
     When using this tool, sometimes output is abbreviated - make sure it does not look abbreviated before using it in your answer.
     """
 
@@ -57,7 +56,8 @@ if __name__ == "__main__":
     sql_tool = SQLQueryTool(engine=db_connection.get_engine())
 
     # Test the SQLQueryTool with an example SQL query
-    example_query = "SELECT * FROM customer_aging_report;"
+    example_query = "SELECT EXTRACT(YEAR FROM \"Doc. Date\") AS \"Year\", EXTRACT(MONTH FROM \"Doc. Date\") AS \"Month\", SUM(\"Amount\") AS \"Total Sales\" FROM invoice_invoice_collection WHERE EXTRACT(YEAR FROM \"Doc. Date\") IN (2023, 2024) GROUP BY EXTRACT(YEAR FROM \"Doc. Date\"), EXTRACT(MONTH FROM \"Doc. Date\") ORDER BY SUM(\"Amount\") DESC LIMIT 1;"
+
     input_data = SQLQueryInput(sql_query=example_query)
 
     # Run the SQLQueryTool and print the result
