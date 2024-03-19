@@ -128,7 +128,7 @@ class MongoDBController:
                 except (ValueError, pd.errors.OutOfBoundsDatetime) as e:
                     raise ValueError(f"Data type mismatch for column '{col}': {e}")
 
-    def insert_unique_rows(self, df, db_name=None, collection_name=None):
+    def insert_rows(self, df, db_name=None, collection_name=None):
         if db_name:
             self.create_database(db_name)
         if collection_name:

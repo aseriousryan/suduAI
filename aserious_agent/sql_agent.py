@@ -59,11 +59,13 @@ class SQLAgent:
         if collection is None:
             table_name, table_schema_markdown, retrieval_description, desc_cos_sim  = table_schema_retriever(user_query, database_name)
        
+        # retrieve prompt example
+        prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(user_query, "de_carton_test")
         end = time.time()
         retrieval_time = end - start
 
         self.tools = [SQLQueryTool(self.engine)]
-        self.prompt = self.prompt_constructor.get_prompt(table_name, table_schema_markdown, retrieval_description)
+        self.prompt = self.prompt_constructor.get_prompt(table_name, table_schema_markdown, retrieval_description, prompt_example)
         self.create_agent()
 
         start = time.time()
@@ -74,10 +76,11 @@ class SQLAgent:
         # log data
         self.data_logger.table = table_name
         self.data_logger.retrieval_desc = retrieval_description
+        self.data_logger.question_retrieval = question_retrieval
         self.data_logger.desc_cos_sim = desc_cos_sim
         self.data_logger.table_retrieval_time = retrieval_time
         self.data_logger.response_time = response_time
-
+        
         return result
 
     def create_agent(self):

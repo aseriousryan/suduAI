@@ -53,6 +53,7 @@ def upload(
     uuid: str,
     collection_name: str,
     preprocess: bool = False,
+    mongo_insertion: bool = False,
     desc: str = '',
     retrieval_desc: str = None,
 ):
@@ -76,10 +77,13 @@ def upload(
 
         elif file.filename.endswith('.csv'):
             df = pd.read_csv(file.filename)
-   
-        df = convert_date_columns_to_sql_datetime(df)
 
-        inserted_ids = mongo.insert_unique_rows(df, uuid, collection_name)
+        if mongo_insertion:
+            df = convert_to_date(df)  
+        else:    
+            df = convert_date_columns_to_sql_datetime(df)
+
+        inserted_ids = mongo.insert_rows(df, uuid, collection_name)
 
         inserted_ids = json.loads(json_util.dumps(inserted_ids))
 
