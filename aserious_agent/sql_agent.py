@@ -18,7 +18,6 @@ from utils.row_retriever import top5_row_for_question
 from prompt_constructor.sql import SqlPromptConstructor
 from tools.sql_database_toolkit import SQLDatabaseToolkit
 from tools.sql_tool import SQLQueryTool
-from langchain.sql_database import SQLDatabase
 import pandas as pd
 from utils.mongoDB import MongoDBController
 from utils.collection_retriever import sentence_transformer_retriever
@@ -26,6 +25,7 @@ from utils.prompt_retriever import prompt_example_sentence_transformer_retriever
 from utils.row_retriever import top5_row_for_question
 from utils.table_retriever import table_schema_retriever
 from sqlalchemy.engine import Engine
+from langchain_community.utilities.sql_database import SQLDatabase
 
 import time
 import os
@@ -37,6 +37,7 @@ class SQLAgent:
         data_logger: LogData,
         mongo: MongoDBController,
         engine: Any,
+        db: SQLDatabase,
         max_iterations: int = 8,
     ):
         
@@ -44,6 +45,7 @@ class SQLAgent:
         self.max_iterations = max_iterations
         self.data_logger = data_logger
         self.engine = engine
+        self.db = db
         self.mongo = mongo
 
         # construct prompt
@@ -51,21 +53,18 @@ class SQLAgent:
         self.user_message = read_yaml(os.environ.get('prompt'))['user_message']
         self.prompt_constructor = SqlPromptConstructor(llm, self.system_message, self.user_message)
     
-    def run_agent(self, user_query: str,database_name: str, collection: str = None):
+    def run_agent(self, user_query: str, database_name: str):
 
         # retrieve table schema
         start = time.time()
 
-        if collection is None:
-            table_name, table_schema_markdown, retrieval_description, desc_cos_sim  = table_schema_retriever(user_query, database_name)
-       
-        # retrieve prompt example
-        prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(user_query, "de_carton_test")
         end = time.time()
         retrieval_time = end - start
 
-        self.tools = [SQLQueryTool(self.engine)]
-        self.prompt = self.prompt_constructor.get_prompt(table_name, table_schema_markdown, retrieval_description, prompt_example)
+        sql_toolkit = SQLDatabaseToolkit(db=self.db,llm=self.llm.llm)
+        self.tools = sql_toolkit.get_tools()
+
+        self.prompt = self.prompt_constructor.get_prompt()
         self.create_agent()
 
         start = time.time()
@@ -74,13 +73,9 @@ class SQLAgent:
         response_time = end - start
 
         # log data
-        self.data_logger.table = table_name
-        self.data_logger.retrieval_desc = retrieval_description
-        self.data_logger.question_retrieval = question_retrieval
-        self.data_logger.desc_cos_sim = desc_cos_sim
         self.data_logger.table_retrieval_time = retrieval_time
         self.data_logger.response_time = response_time
-        
+
         return result
 
     def create_agent(self):

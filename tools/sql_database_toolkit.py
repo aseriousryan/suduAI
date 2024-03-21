@@ -1,3 +1,6 @@
+from langchain.pydantic_v1 import BaseModel, Field
+from langchain.tools import BaseTool, StructuredTool, tool
+from sqlalchemy import create_engine, text
 from typing import List
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.pydantic_v1 import Field
@@ -10,18 +13,16 @@ from langchain_community.tools.sql_database.tool import (
     QuerySQLDataBaseTool,
 )
 from langchain_community.utilities.sql_database import SQLDatabase
-from langchain.pydantic_v1 import BaseModel, Field
-from langchain.tools import BaseTool, StructuredTool, tool
-from sqlalchemy import create_engine, text
 
 class DatabaseConnection:
     def __init__(self, db_user, db_password, db_host, db_name, db_port):
-        connection_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        connection_uri = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
         self.engine = create_engine(connection_uri)
 
     def get_engine(self):
+        print("Connection OK!")
         return self.engine
-
+    
 class SQLQueryInput(BaseModel):
     query: str
 
@@ -71,7 +72,6 @@ class TableSchemaTool(BaseTool):
     def run(self, engine):
         return self._run(engine=engine)
 
-
 class SQLDatabaseToolkit(BaseToolkit):
     db: SQLDatabase = Field(exclude=True)
     llm: BaseLanguageModel = Field(exclude=True)
@@ -100,8 +100,7 @@ class SQLDatabaseToolkit(BaseToolkit):
             "result from the database. If the query is not correct, an error message "
             "will be returned. If an error is returned, rewrite the query, check the "
             "query, and try again. If you encounter an issue with Unknown column "
-            f"'xxxx' in 'field list', use {info_sql_database_tool.name} "
-            "to query the correct table fields."
+            f"'xxxx' in 'where clause', rewrite the entire SQL query with corrected column name and try again."
         )
         query_sql_database_tool = QuerySQLDataBaseTool(
             db=self.db, description=query_sql_database_tool_description
@@ -116,7 +115,6 @@ class SQLDatabaseToolkit(BaseToolkit):
         )
 
         tools = [
-            list_sql_database_tool,
             info_sql_database_tool,
             query_sql_database_tool,
             query_sql_checker_tool,
@@ -124,31 +122,31 @@ class SQLDatabaseToolkit(BaseToolkit):
         
         return tools
     
-    def get_context(self) -> dict[str, any]:
+    def get_context(self) -> dict:
         """Return db context that you may want in agent prompt."""
-        table_info = self.db.get_table_info_no_throw(table_names=["delivery_order_listing"])
-        return {"table_info": table_info}
+        return self.db.get_context()
+
 
 if __name__ == "__main__":
-    
+    import sys
+    import os
+
+    # Add the parent directory of the current file to sys.path
+    current_dir = os.path.dirname(__file__)
+    parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
+    sys.path.append(parent_dir)
     #testing
     from utils.llm import LargeLanguageModel
     from utils.common import LogData, read_yaml
-    from langchain.sql_database import SQLDatabase
+    from langchain_community.utilities.sql_database import SQLDatabase
     from aserious_agent.sql_agent import SQLAgent
     import os
-
-    db_user = "postgres"
-    db_password = "6969ismylife"
-    db_host = "localhost"
-    db_name = "DeCarton"
-    db_port = "5432"  
 
     db_connection = DatabaseConnection(db_user, db_password, db_host, db_name, db_port)
 
     engine = db_connection.get_engine()
 
-    query_input = SQLQueryInput(query="SELECT * FROM delivery_order_listing")
+    query_input = SQLQueryInput(query="SELECT * FROM sales_orders")
 
     query_tool = SQLQueryTool()
 
