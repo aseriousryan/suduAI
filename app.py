@@ -14,7 +14,7 @@ from aserious_agent.pandas_agent import PandasAgent
 
 from aserious_agent.sql_agent import SQLAgent
 from tools.sql_database_toolkit import DatabaseConnection
-from langchain.sql_database import SQLDatabase
+from langchain_community.utilities.sql_database import SQLDatabase
 
 import os
 import uvicorn
@@ -39,6 +39,8 @@ app.add_middleware(
 rp = RedirectPrint()
 data_logger = LogData()
 llm = LargeLanguageModel(**read_yaml(os.environ['model']))
+
+#mongo
 mongo = MongoDBController(
     host=os.environ['mongodb_url'],
     port=int(os.environ['mongodb_port']), 
@@ -46,15 +48,21 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
-
+#postgresql
 db_user = os.getenv('db_user')
 db_password = os.getenv('db_password')
 db_host = os.getenv('db_host')
 db_name = os.getenv('db_name')
 db_port = int(os.getenv('db_port'))
 
-db_connection = DatabaseConnection(db_user, db_password, db_host, db_name, db_port)
+#DemoDatabase
+user = os.getenv('user')
+password = os.getenv('password')
+host = os.getenv('host')
+name = os.getenv('database')
+port = int(os.getenv('port'))
 
+db_connection = DatabaseConnection(user, password, host, name, port)
 engine = db_connection.get_engine()
 
 sql_db = SQLDatabase(engine)
@@ -75,19 +83,19 @@ async def root():
     return JSONResponse(content=model_config)
 
 @app.post('/chat')
-async def chatmsg(msg: str, database_name: str, collection: str = None, note: str = None):
+async def chatmsg(msg: str, database_name: str, note: str = None):
     # database_name = company name
     try:
         now = datetime.datetime.now()
 
         if(agent_type=="sql_agent"):
-            agent = SQLAgent(llm, data_logger, mongo, engine)
+            agent = SQLAgent(llm, data_logger, mongo, engine, sql_db)
         else:
             agent = PandasAgent(llm, mongo, data_logger)
 
         # capture terminal outputs to log llm output
         rp.start()
-        result = agent.run_agent(user_query=msg, database_name=database_name, collection=collection)
+        result = agent.run_agent(user_query=msg, database_name=database_name)
         debug_log = extract_prompts(rp.get_output())
         rp.stop()
         

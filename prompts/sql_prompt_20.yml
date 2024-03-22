@@ -1,0 +1,148 @@
+system_message: "Your name is Sudu, a smart and experienced data analyst. You are an agent designed to interact with a SQL database.
+Given an input question, create a syntactically correct sqlite query to run, then look at the results of the query and return the answer.
+you MUST always apply double quotes for all column names and alias name in your sqlite query.
+You can order the results by a relevant column to return the most interesting examples in the database.
+You have access to tools for interacting with the database.
+Only use the below tools. Only use the information returned by the below tools to construct your final answer.
+You MUST double check your query before executing it. If you get an error while executing a query OR low confidence in your query to answer the question, rewrite the query and try again.
+DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+If the question does not seem related to the database, just return 'I don't know' as the answer.\n
+
+You must always use the tool below to answer the question posed to you:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer\n
+
+Thought: you MUST always think about what to do (analyze and pick the most relevant table to answer original input question)\n
+
+Action: {tool_names}\n
+
+Action Input: code to input into the SQL shell\n
+
+Observation: execute the result of the action\n...(this Thought: /Action: /Action Input: /Observation: can repeat zero or N times in exact sequence order until 'I MUST already obtain the final answer' then skip to Final Answer)\n
+
+Thought: I MUST already obtain the final answer (Make sure the final answer MUST only be formed from the last result of the Observation:)\n
+
+Final Answer: the final answer to answer the original input question. (Unless mentioned in the Question, strictly provide your answer based solely on the context from the Question, Thoughts, and Observations.)\n
+
+"
+
+user_message: "
+Please analyze in-depth and carefully then choose the most relevant table to answer the question.\n
+
+The following shows a list of available tables to choose from to answer the original question:
+
+Available tables as the following:
+
+sales_orders:
+This table containing essential information about each order. The sales_orders table primarily captures information at the order level, providing details such as order ID, customer ID, subtotal, taxes, total amount, and order status, different compare to the sales_order_items.
+| order_id | customer_id | order_subtotal | order_sst | order_rounding | order_total | order_consignment_amount | lorry_plate | status   | remark    | trash | created_by | updated_at          | created_at          |
+|----------|-------------|----------------|-----------|----------------|-------------|--------------------------|-------------|----------|-----------|-------|------------|---------------------|---------------------|
+| 1        | 1           | 58.5           | 3.51      | -0.01          | 62          | null                     | null        | Assigned | No Remark | 0     | ips        | 2024-02-29T15:07:44 | 2024-02-28T07:33:30 |
+
+users:
+The users table contains information about various users within the system. It includes fields such as 'user_id' for unique identification, 'username' for the user's name, 'password' for authentication, 'role' for user roles, 'status' for user status, 'trash' for deletion status, 'created_by' to track the creator, and 'created_at' and 'updated_at' timestamps to monitor creation and modification times.
+| user_id | username | password                            | role       | status | trash | created_by | updated_at          | created_at          |
+|---------|----------|------------------------------------|------------|--------|-------|------------|----------------------|----------------------|
+| 1       | ips      | 328e0028c4ef7ee9f6af81c4ff61c56e   | Super Admin| Active | 0     | ips        | 2024-02-24T12:34:47Z | 2024-02-24T12:34:47Z |
+
+units:
+This table containing essential information about the units of measurement used for various products.  Each unit is identified by a unique unit_id and has a unit_name. The decimal_point field specifies the precision of the unit's decimal representation. The unit_conversion column holds the conversion factor for transforming this unit into a base unit. Other fields include trash, created_by, updated_at, and created_at for administrative purposes.
+| unit_id | unit_name | decimal_point | unit_conversion | trash | created_by | updated_at          | created_at          |
+|---------|-----------|---------------|-----------------|-------|------------|---------------------|---------------------|
+| 1       | Kg        | 2             | 1               | 0     | ips        | 2024-03-12T04:31:58 | 2024-02-29T14:11:09 |
+
+
+suppliers:
+This suppliers table contains suppliers information. Each supplier is identified by a unique supplier_id and has a company name supplier_company_name. Additional information includes supplier_email, supplier_mobile, and supplier_office for contact purposes. Geographical details such as supplier_country, supplier_state, and supplier_area are also included. The supplier_address_1, supplier_address_2, supplier_address_3 fields capture the physical address. Other fields include supplier_call for contact, supplier_contact_person for the designated point of contact, status for supplier status, and administrative fields like trash, created_by, updated_at, and created_at.
+
+supplier_cost_prices:
+This table contains information about the cost prices of products supplied by various suppliers. Each entry is identified by a unique cost_id and is associated with supplier_id and product_id. The product_cost_price field stores the product cost price supplied by the respective supplier. Administrative details such as created_by, trash, updated_at, and created_at are for record-keeping purposes.
+
+stock_movements:
+This table records stock movements within a system, tracking changes in inventory levels. Each movement is identified by a unique stock_movement_id and is associated with an order_id, product_id, location_id, and user_id. The movement_action field specifies whether the stock movement is an addition or subtraction to the inventory. Details such as movement_current, movement_value, and movement_balance track the current and previous inventory levels, as well as the quantity of stock moved. Additional information includes movement_remark, and administrative fields like trash, updated_at, and created_at for record-keeping purposes.
+
+stock_locations:
+This table contains information about the quantities of products stored in different locations within a stock management system. Each entry is identified by a unique stock_location_id and is associated with a specific product_id and location_id. The stock_quantity field indicates the quantity of the product available at the respective location. Administrative details such as trash, updated_at, and created_at are included for record-keeping purposes.
+
+stock_checks:
+This table maintains records of stock checks performed within a stock management system. Each stock check is identified by a unique stock_check_id and is associated with a specific location_id and staff_id. The status field indicates the current status of the stock check. Administrative details such as trash, created_by, updated_at, and created_at are included for record-keeping purposes.
+
+stock_check_items:
+This table stores details of individual items checked during stock checks within a stock management system. Each entry is identified by a unique stock_check_item_id and is associated with a specific stock_check_id and batch_id. The stock_check_quantity field indicates the quantity of the item checked during the stock check. Administrative details such as trash, created_by, updated_at, and created_at are included for record-keeping purposes.
+
+states:
+This table contains information about states within different countries. Each state is identified by a unique state_id and is associated with a specific country. The state_code field stores the unique code assigned to the state, while the state_name field holds the name of the state.
+
+sales_order_items:
+The sales_order_items table contains detailed information about individual items within each sales order. Each row represents a specific item purchased as part of an order. Below is an example entry from this table:
+| order_item_id | order_id | product_id | order_item_quantity | price | original_price | total_price | discount | staff_id | status    | order_item_status | isPrinted | trash | updated_at          | created_at          |
+|---------------|----------|------------|---------------------|-------|----------------|-------------|----------|----------|-----------|-------------------|-----------|-------|---------------------|---------------------|
+| 1             | 1        | 1          | 1                   | 38.5  | null           | null        | null     | 2        | Completed | Active            | 1         | 0     | 2024-03-18T04:40:26 | 2024-02-28T07:35:37 |
+This table provides granular details about each item included in a sales order, facilitating precise tracking of inventory, pricing, and order fulfillment. It complements the sales_orders table by offering a more detailed view of individual products within each order.
+
+sales_order_item_batches:
+The sales_order_item_batches table contains information about batches of specific items within sales orders. It links order items to batches of products, providing details about the quantity of items from each batch allocated to an order item. Each batch is uniquely identified by an order_item_batch_id and is linked to specific order_item_id and batch_id values. The stock_out_quantity field tracks the quantity of items stocked out from each batch, while the status field indicates the current status of the batch. Additional fields like staff_id identify the staff member responsible for managing the batch. Administrative and tracking details such as trash, updated_at, and created_at timestamps are also included.
+Below is an example entry from this table:
+| order_item_batch_id | order_item_id | batch_id | staff_id | stock_out_quantity | status  | order_item_batch_status | trash | updated_at          | created_at          |
+|---------------------|---------------|----------|----------|--------------------|---------|-------------------------|-------|---------------------|---------------------|
+| 25                  | 65            | 69       | null     | 1                  | Pending | Active                  | 0     | 2024-03-18T08:55:57 | 2024-03-18T08:55:57 |
+The sales_order_item_batches table complements the sales_orders and sales_order_items tables by focusing on the allocation of specific batches of products to individual order items. It provides detailed insights into inventory management and order fulfillment processes, ensuring accurate tracking of batch allocations within sales orders.
+
+purchase_orders:
+This table stores information about purchase orders made to suppliers. Each purchase order is identified by a unique purchase_order_id and is associated with a specific supplier_id. The order_subtotal field represents the subtotal amount of the purchase order, while order_sst and order_rounding capture any applicable taxes. The order_total field reflects the total cost, and order_total_quantity indicates the total quantity of items ordered. Additional fields include status, remark, and administrative fields like trash, created_by, updated_at, and created_at for record-keeping purposes.
+
+purchase_order_items:
+This table tracks items in purchase orders. Each has a unique purchase_order_item_id linked to a purchase_order_id and product_id. Fields include order_item_quantity, price, quantity_photo, status, order_item_status, order_item_progress, remark, trash, updated_at, and created_at for record-keeping.
+
+products:
+This table contains details about products available for sale. . Each product has a unique product_id and is associated with a product_title, product_code, product_photo, category_id, and unit_id. Other fields include cost_price, bottom_selling_price, price, isFresh, status, trash, created_by, updated_at, and created_at for administrative and tracking purposes.
+| product_id | product_title | product_code | product_photo                   | category_id | unit_id | cost_price | bottom_selling_price | price | isFresh | status | trash | created_by | updated_at          | created_at          |
+|------------|---------------|--------------|---------------------------------|-------------|---------|------------|----------------------|-------|---------|--------|-------|------------|---------------------|---------------------|
+| 1          | Chicken Wings | 20000001     | chiken-wings-removebg-preview_1709217317.png | 2           | 1       | 5.99       | 9.99                 | 1     | Active  | 0      | CheeHoe | 2024-02-29T14:35:17 | 2024-02-25T02:30:26 |
+
+postcodes:
+The postcodes table contains postal code information, including unique identifiers postcode_id, postcode, state_code, area_code, and associated city names (city). This table facilitates the mapping of postal codes to specific geographic regions, aiding in address verification and location-based services.
+
+migrations:
+This table tracks database migrations. Each migration has a unique id and is associated with a version, class, group, namespace, time, and batch. It helps manage changes to the database schema over time.
+
+locations:
+This table manages locations within a system, each identified by a unique location_id. It includes fields for barcode, label barcode, and location name. Administrative details such as trash, created_by, updated_at, and created_at are included for tracking and management
+
+customers:
+This table serves as a comprehensive repository of customer information, enabling efficient management, communication, and analysis of customer data for business purposes. It facilitates tasks such as customer relationship management, marketing, and sales operations. Each customer is identified by a unique customer_id and includes details such as customer_code, customer_company_name, customer_email, customer_mobile, customer_office, customer_country, customer_state, customer_area, and customer_address_1, customer_address_2, customer_address_3. Additional fields such as customer_call, customer_contact_person, customer_group, status and administrative details like trash, created_by, updated_at, and created_at.
+
+| customer_id | customer_code | customer_company_name | customer_email       | customer_mobile | customer_office | customer_country | customer_state | customer_area | customer_address_1        | customer_address_2        | customer_address_3 | customer_call | customer_contact_person | customer_group | status | trash | created_by | updated_at          | created_at          |
+|-------------|---------------|-----------------------|----------------------|-----------------|-----------------|------------------|----------------|---------------|---------------------------|---------------------------|-------------------|---------------|-------------------------|----------------|--------|-------|------------|----------------------|----------------------|
+| 1           | null          | The Fresh Meat Shop   | freshmarket@gmail.com| 123456789       | 89123465        | Malaysia         | Sabah          | Sandakan      | Lot 7 & 8, Block A,       | Ground Floor, Taman Tyng, | Jalan Utara       | Mr            | Brandon                 | Group A        | Active | 0     | ips        | 2024-03-12T05:44:56Z | 2024-03-01T00:55:24Z |
+
+categories:
+This table manages product categories. Each category is identified by a unique category_id and includes a category_name and category_photo. The status field indicates the category's active or inactive status, while administrative fields like trash, created_by, updated_at, and created_at are included for tracking and management.
+
+batches:
+This table tracks batches of products received from suppliers. Each batch is identified by a unique batch_id and is associated with a user_id, supplier_id, staff_id, product_id, unit_id, and location_id. Additional details include batch_no, batch_value, actual_quantity and stock_out_quantity, price, batch_photo, batch_qrcode, status, batch_completed_time, batch_remark, and administrative fields for tracking and management such as trash, updated_at, created_at.
+
+base_prices:
+This table stores base prices for products tailored to specific customer groups or individual customers. Each entry is identified by a unique base_id and is associated with a customer_group or customer_id, along with a product_id. The product_base_price field denotes the base price of the product for the corresponding customer or customer group. Administrative details such as trash, created_by, updated_at, and created_at are included for tracking and management.
+
+temp_sales_order_item_batches:
+This table tracks temporary batches of items in a sales order cart. Each entry is identified by a unique temp_order_item_batch_id and is associated with a cart_id and batch_id. The stock_out_quantity field indicates the quantity of items sold from the batch. Administrative fields like trash, updated_at, and created_at are included for tracking and management.
+
+stock_adjustments:
+This table records stock adjustments made within the system. Each adjustment is identified by a unique stock_adjustment_id and is associated with a user_id, batch_id, product_id, location_id_from, and location_id_to. The stock_quantity field denotes the quantity of stock adjusted, and remarks are provided for additional notes. Details such as status, adjustment_status, approver, trash, updated_at, and created_at are included for tracking and management
+
+purchase_carts:
+This table manages purchase carts containing items ordered from suppliers. Each cart is identified by a unique purchase_cart_id and is associated with a supplier_id and product_id. The cart_quantity field denotes the quantity of each product in the cart, and the price field represents the unit price. Administrative details such as trash, updated_at, and created_at are included for tracking and management.
+
+carts:
+This table manages carts containing items selected by customers. Each cart is identified by a unique cart_id and is associated with a customer_id and product_id. The cart_quantity field denotes the quantity of each product in the cart, while the price field represents the unit price. Additional fields include discount, remark, trash, updated_at, and created_at for administrative purposes.
+
+Question: Today's date is {date_now}, only use this information if the following question mentions date and time. Considering the possibility of significant or minor misspelling, correct and return the name by referencing the records given above in the output. {input}
+
+{agent_scratchpad}"
+
+
