@@ -13,6 +13,7 @@ from langchain_community.tools.sql_database.tool import (
     QuerySQLDataBaseTool,
 )
 from langchain_community.utilities.sql_database import SQLDatabase
+import re
 
 class DatabaseConnection:
     def __init__(self, db_user, db_password, db_host, db_name, db_port):
@@ -30,13 +31,32 @@ class SQLQueryTool(BaseTool):
     name = "SQLQueryTool"
     description = "A tool for executing SQL queries."
     
+    # Conditional check for potential database modification
+    def contains_forbidden_keywords(self, query):
+            """
+            Check if the query contains any SQL keywords that would modify the database.
+            """
+            forbidden_keywords = ['INSERT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'DROP', 'TRUNCATE', 'REPLACE', 'COMMENT', 'MERGE', 'GRANT', 'REVOKE', 'RENAME', 'LOCK TABLES', 'ROLLBACK']
+
+            query_cleaned = re.sub(r"^\[SQL:\s*", "", query)
+            query_cleaned = re.sub(r"\]$", "", query_cleaned)
+
+            query_no_comments = re.sub(r"--.*?\n", "", query_cleaned, flags=re.MULTILINE)
+            query_no_comments = re.sub(r"/\*.*?\*/", "", query_no_comments, flags=re.DOTALL).upper()
+
+            return any(keyword in query_no_comments for keyword in forbidden_keywords)
+   
     def _run(self, tool_input: SQLQueryInput, engine):
         """
         Executes a SQL query using the provided SQLAlchemy engine
         and returns the results.
         """
-        query = tool_input.query  
-        
+        query = tool_input.query.strip()
+
+        # Validate that the query 
+        if self.contains_forbidden_keywords(query):
+            raise ValueError("The query contains forbidden keywords that could modify the database.")
+
         with engine.connect() as connection:
             result = connection.execute(text(query))
             column_names = list(result.keys())
@@ -86,27 +106,27 @@ class SQLDatabaseToolkit(BaseToolkit):
     def get_tools(self) -> List[BaseTool]:
         list_sql_database_tool = ListSQLDatabaseTool(db=self.db)
         info_sql_database_tool_description = (
-            "Input to this tool is a comma-separated list of tables, output is the "
+            "Input to this tool is a single table or comma-separated list of tables, output is the "
             "schema and sample rows for those tables. "
-            "Be sure that the tables actually exist by calling "
-            f"{list_sql_database_tool.name} first! "
-            "Example Input: table1, table2, table3"
+            "Example Input for list of tables: table1, table2, table3 "
+            "Example Input for single table: table4"
         )
         info_sql_database_tool = InfoSQLDatabaseTool(
             db=self.db, description=info_sql_database_tool_description
         )
         query_sql_database_tool_description = (
-            "Input to this tool is a detailed and correct SQL query, output is a "
+            "Input to this tool is a detailed and correct MySQL query, output is a "
             "result from the database. If the query is not correct, an error message "
             "will be returned. If an error is returned, rewrite the query, check the "
             "query, and try again. If you encounter an issue with Unknown column "
-            f"'xxxx' in 'where clause', rewrite the entire SQL query with corrected column name and try again."
+            f"'xxxx' in 'field list' OR Unknown column 'xxxx' in 'where clause', use {info_sql_database_tool.name} "
+            "to query the correct table column names from the given table schema."
         )
         query_sql_database_tool = QuerySQLDataBaseTool(
             db=self.db, description=query_sql_database_tool_description
         )
         query_sql_checker_tool_description = (
-            "Use this tool to double check if your query is correct before executing "
+            "Use this tool to double check if your MySQL query is correct before executing "
             "it. Always use this tool before executing a query with "
             f"{query_sql_database_tool.name}!"
         )
@@ -115,6 +135,7 @@ class SQLDatabaseToolkit(BaseToolkit):
         )
 
         tools = [
+            # list_sql_database_tool,
             info_sql_database_tool,
             query_sql_database_tool,
             query_sql_checker_tool,
@@ -125,6 +146,7 @@ class SQLDatabaseToolkit(BaseToolkit):
     def get_context(self) -> dict:
         """Return db context that you may want in agent prompt."""
         return self.db.get_context()
+
 
 
 if __name__ == "__main__":
