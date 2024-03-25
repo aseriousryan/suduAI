@@ -48,21 +48,16 @@ mongo = MongoDBController(
     password=os.environ['mongodb_password']
 )
 
-#postgresql
-db_user = os.getenv('db_user')
-db_password = os.getenv('db_password')
-db_host = os.getenv('db_host')
-db_name = os.getenv('db_name')
-db_port = int(os.getenv('db_port'))
+#MySql database
+db_user = os.getenv('user')
+db_password = os.getenv('password')
+db_host = os.getenv('host')
+db_name = os.getenv('database')
+db_port = os.getenv('port')
 
-#DemoDatabase
-user = os.getenv('user')
-password = os.getenv('password')
-host = os.getenv('host')
-name = os.getenv('database')
-port = int(os.getenv('port'))
 
-db_connection = DatabaseConnection(user, password, host, name, port)
+
+db_connection = DatabaseConnection(db_user, db_password, db_host, db_name, db_port)
 engine = db_connection.get_engine()
 
 sql_db = SQLDatabase(engine)

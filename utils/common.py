@@ -68,43 +68,35 @@ def parse_langchain_debug_log(debug_log): #json
 
     return final_log
 
-
-
 def extract_prompts(input_text):
-    # Define the pattern to match all occurrences of the "prompts" array content
-    prompts_pattern = re.compile(r'"prompts": \[([\s\S]*?)\]', re.DOTALL)
+    # Define the pattern for prompts
+    pattern_prompts = r'"prompts": \[((?:[^[\]]|\[(?:[^[\]]|\[[^[\]]*\])*\])*)\]'
+    
+    # Define the pattern for input
+    pattern_input = r'"input": "(.*?)"'
+    
+    # Use re.DOTALL to make '.' match newline characters as well
+    matches_prompts = re.findall(pattern_prompts, input_text, re.DOTALL)
+    matches_input = re.findall(pattern_input, input_text, re.DOTALL)
+    
+    # If matches were found
+    if matches_prompts and matches_input:
+        # Get the last match
+        last_match_prompts = matches_prompts[-1]
+        last_match_input = matches_input[-1]
+        
+        # Replace escaped newline characters with actual newline characters
+        last_match_prompts = last_match_prompts.replace('\\n', '\n')
+        last_match_input = last_match_input.replace('\\n', '\n')
+        
+        # Append last_match_input to last_match_prompts
+        last_match = last_match_prompts + '\n' + last_match_input
+        
+        return last_match
 
-    # Define the pattern to match the last occurrence of the "log" value
-    log_pattern = re.compile(r'"log": "(.*?)"', re.DOTALL)
-
-    # Find all occurrences of "prompts" in the input text
-    prompts_matches = prompts_pattern.findall(input_text)
-
-    # Check if there are any "prompts" matches
-    if prompts_matches:
-        # Extract the content of the last "prompts" array
-        last_prompts = prompts_matches[-1]
-
-        # Define the pattern to match the last occurrence of the "log" value
-        log_pattern = re.compile(r'"log": "(.*?)"', re.DOTALL)
-
-        # Search for the "log" pattern in the input text
-        log_match = log_pattern.findall(input_text)
-
-        # Check if a "log" match is found
-        if log_match:
-            # Extract the last occurrence of the "log" value
-            last_log = log_match[-1]
-
-            # Append the last log to the extracted prompts
-            last_prompts += ']\nThought: ' + last_log
-
-        # Replace "\n" with actual newline character
-        last_prompts = last_prompts.replace("\\n", "\n")
-
-        return last_prompts  
-
-    return "Prompts not found in the input text."
+    # If no matches were found
+    else:
+        return None
 
 
 class LogData(BaseModel):
