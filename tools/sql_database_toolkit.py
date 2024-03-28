@@ -107,7 +107,7 @@ class SQLDatabaseToolkit(BaseToolkit):
         list_sql_database_tool = ListSQLDatabaseTool(db=self.db)
         info_sql_database_tool_description = (
             "Input to this tool is a single table or comma-separated list of tables, output is the "
-            "schema and sample rows for those tables. "
+            "schema and sample rows for those tables. " 
             "Example Input for list of tables: table1, table2, table3 "
             "Example Input for single table: table4"
         )
@@ -115,20 +115,18 @@ class SQLDatabaseToolkit(BaseToolkit):
             db=self.db, description=info_sql_database_tool_description
         )
         query_sql_database_tool_description = (
-            "Input to this tool is a detailed and correct MySQL query, output is a "
+           "Input to this tool is a detailed and correct MySQL query, output is a "
             "result from the database. If the query is not correct, an error message "
-            "will be returned. If an error is returned, rewrite the query, check the "
-            "query, and try again. If you encounter an issue with Unknown column "
-            f"'xxxx' in 'field list' OR Unknown column 'xxxx' in 'where clause', use {info_sql_database_tool.name} "
-            "to query the correct table column names from the given table schema."
+            f"will be returned. If any error occurs, always use sql_db_schema tool to rethink and rewrite new correct query, check the "
+            "query, and try again. "
+            "This tool should always be used to execute the final query and retrieve the result from the database."
         )
         query_sql_database_tool = QuerySQLDataBaseTool(
             db=self.db, description=query_sql_database_tool_description
         )
         query_sql_checker_tool_description = (
-            "Use this tool to double check if your MySQL query is correct before executing "
-            "it. Always use this tool before executing a query with "
-            f"{query_sql_database_tool.name}!"
+            "Use this tool to double check if your MySQL query is correct before executing it. "
+            f"Always use this tool before executing a query with {query_sql_database_tool.name}!"
         )
         query_sql_checker_tool = QuerySQLCheckerTool(
             db=self.db, llm=self.llm, description=query_sql_checker_tool_description
@@ -138,7 +136,7 @@ class SQLDatabaseToolkit(BaseToolkit):
             # list_sql_database_tool,
             info_sql_database_tool,
             query_sql_database_tool,
-            query_sql_checker_tool,
+            # query_sql_checker_tool,
         ]
         
         return tools
@@ -164,7 +162,7 @@ if __name__ == "__main__":
     from aserious_agent.sql_agent import SQLAgent
     import os
 
-    db_connection = DatabaseConnection(db_user, db_password, db_host, db_name, db_port)
+    db_connection = DatabaseConnection(db_user="user", db_password="password", db_host="localhost", db_name="test", db_port="1111")
 
     engine = db_connection.get_engine()
 

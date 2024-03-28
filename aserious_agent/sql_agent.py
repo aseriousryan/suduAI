@@ -38,7 +38,7 @@ class SQLAgent:
         mongo: MongoDBController,
         engine: Any,
         db: SQLDatabase,
-        max_iterations: int = 8,
+        max_iterations: int = 12,
     ):
         
         self.llm = llm
@@ -57,13 +57,14 @@ class SQLAgent:
 
         # retrieve table schema
         start = time.time()
-
+        prompt_example, question_retrieval = prompt_example_sentence_transformer_retriever(user_query, database_name)
         end = time.time()
         retrieval_time = end - start
 
         sql_toolkit = SQLDatabaseToolkit(db=self.db,llm=self.llm.llm)
         self.tools = sql_toolkit.get_tools()
-
+        
+        prompt_example=''
         self.prompt = self.prompt_constructor.get_prompt()
         self.create_agent()
 
@@ -73,6 +74,7 @@ class SQLAgent:
         response_time = end - start
 
         # log data
+        self.data_logger.query_retrieval = question_retrieval
         self.data_logger.table_retrieval_time = retrieval_time
         self.data_logger.response_time = response_time
 
