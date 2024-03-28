@@ -107,7 +107,7 @@ class SQLDatabaseToolkit(BaseToolkit):
         list_sql_database_tool = ListSQLDatabaseTool(db=self.db)
         info_sql_database_tool_description = (
             "Input to this tool is a single table or comma-separated list of tables, output is the "
-            "schema and sample rows for those tables. "
+            "schema and sample rows for those tables. " 
             "Example Input for list of tables: table1, table2, table3 "
             "Example Input for single table: table4"
         )
@@ -115,11 +115,10 @@ class SQLDatabaseToolkit(BaseToolkit):
             db=self.db, description=info_sql_database_tool_description
         )
         query_sql_database_tool_description = (
-
-            "This tool requires a detailed and correct MySQL query as input and returns a result set from the database. "
-            "If the query is incorrect, an error message will be returned. In case of an error, you should revise the query, verify its correctness, and try again. "
-            "If you encounter an error such as 'Unknown column ‘xxxx’ in ‘field list’ or 'Unknown column ‘xxxx’ in ‘where clause’, "
-            f"use the {info_sql_database_tool.name} tool to query the correct table column name. "
+           "Input to this tool is a detailed and correct MySQL query, output is a "
+            "result from the database. If the query is not correct, an error message "
+            f"will be returned. If any error occurs, always use sql_db_schema tool to rethink and rewrite new correct query, check the "
+            "query, and try again. "
             "This tool should always be used to execute the final query and retrieve the result from the database."
         )
         query_sql_database_tool = QuerySQLDataBaseTool(
